@@ -1,0 +1,14 @@
+{
+  "dependencies": [
+    {
+      "id": "WebView2Runtime",
+      "displayName": "Microsoft Edge WebView2 Runtime",
+      "checkType": "registry",
+      "registryKey": "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}",
+      "registryValue": "pv",
+      "installerSubPath": "WebView2Runtime\\MicrosoftEdgeWebview2Setup.exe",
+      "installerArgs": "/silent /install",
+      "optional": false
+    }
+  ]
+}

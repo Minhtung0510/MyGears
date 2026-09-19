@@ -1,0 +1,18 @@
+{
+  "mouse": {
+    "activeDpiProfile": 0,
+    "pollingRate": 1000,
+    "rgbColor": "#FF4500"
+  },
+  "keyboard": {
+    "activeProfile": "default",
+    "webViewZoom": 1.0
+  },
+  "ui": {
+    "lastActiveTab": "keyboard",
+    "windowLeft": 100,
+    "windowTop": 100,
+    "windowWidth": 1100,
+    "windowHeight": 720
+  }
+}

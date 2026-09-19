@@ -1,0 +1,236 @@
+<UserControl x:Class="MyGears.Views.Modules.OtherModuleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="850"
+             FontFamily="Segoe UI, Arial, sans-serif">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,18">
+        <StackPanel MaxWidth="800" HorizontalAlignment="Left">
+
+            <!-- ── Header ────────────────────────────────────── -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="48" Height="48" CornerRadius="10"
+                        Background="#1C1414" BorderBrush="#E8321A" BorderThickness="1.5"
+                        Margin="0,0,16,0">
+                    <TextBlock Text="🛠️" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="CÔNG CỤ &amp; QUẢN LÝ HỆ THỐNG" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Quản lý ẩn/hiện thư mục trên USB, mở nhanh thư mục chứa driver và thông tin ứng dụng."
+                               FontSize="12" Foreground="#888" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- ── Card 1: Quản lý Ẩn/Hiện Thư Mục USB ──────────── -->
+            <Border CornerRadius="8" Background="#161616" BorderBrush="#252525" BorderThickness="1"
+                    Padding="20,16" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📁" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Trạng Thái Các Thư Mục Trên USB (Download/, App/ &amp; src/)"
+                                       FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Trạng thái ẩn/hiện -->
+                        <Border x:Name="StatusBadgeBorder" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right"
+                                Background="#102E1B" BorderBrush="#00E676" BorderThickness="1">
+                            <TextBlock x:Name="TxtHiddenStatus" Text="🔒 Đang Ẩn Hết (Gọn gàng)"
+                                       FontSize="11.5" FontWeight="SemiBold" Foreground="#00E676"/>
+                        </Border>
+                    </Grid>
+
+                    <TextBlock Text="Khi đang ẩn, lúc cắm USB vào máy tính bạn sẽ chỉ thấy duy nhất file Cài_Đặt_MyGears.exe (siêu gọn gàng). Bấm nút dưới để hiện ra các thư mục nếu bạn muốn thêm driver vào Download hoặc xem code:"
+                               FontSize="12" Foreground="#999" TextWrapping="Wrap" Margin="0,0,0,16" LineHeight="18"/>
+
+                    <WrapPanel Orientation="Horizontal">
+                        <Button x:Name="BtnUnhideFolders" Content="👁️ Hiện Tất Cả Thư Mục (Download, App &amp; src)"
+                                Click="BtnUnhideFolders_Click"
+                                Style="{StaticResource ToolbarButtonStyle}" Padding="14,8" Margin="0,0,10,8"
+                                FontSize="12.5" FontWeight="SemiBold"/>
+
+                        <Button x:Name="BtnHideFolders" Content="🔒 Ẩn Hết (Chỉ hiện file Cài Đặt)"
+                                Click="BtnHideFolders_Click"
+                                Style="{StaticResource ToolbarButtonStyle}" Padding="14,8" Margin="0,0,10,8"
+                                FontSize="12.5" FontWeight="SemiBold"/>
+
+                        <Button x:Name="BtnRefreshStatus" Content="🔄 Làm mới"
+                                Click="BtnRefreshStatus_Click"
+                                Style="{StaticResource ToolbarButtonStyle}" Padding="12,8" Margin="0,0,0,8"
+                                FontSize="12"/>
+                    </WrapPanel>
+
+                    <!-- Dòng thông báo kết quả thao tác -->
+                    <TextBlock x:Name="TxtFolderActionMsg" Text="" FontSize="11.5" Foreground="#00E5FF"
+                               Margin="0,4,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Card 2: Mở Nhanh Các Thư Mục ─────────────────── -->
+            <Border CornerRadius="8" Background="#161616" BorderBrush="#252525" BorderThickness="1"
+                    Padding="20,16" Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="⚡" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Lối Tắt Mở Nhanh Các Thư Mục"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Button 1: Thư mục Download -->
+                        <Border Grid.Row="0" Grid.Column="0" CornerRadius="6" Background="#1C1C1C" BorderBrush="#2E2E2E"
+                                BorderThickness="1" Padding="14,12" Margin="0,0,0,12" Cursor="Hand"
+                                MouseLeftButtonDown="OpenDownloadDir_Click">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="#E8321A"/>
+                                            <Setter Property="Background" Value="#222222"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="📥 Thư Mục Download/" FontSize="13" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Ném thêm driver chuột / bàn phím mới của bạn vào đây"
+                                           FontSize="11" Foreground="#888" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Button 2: Thư mục Gốc USB -->
+                        <Border Grid.Row="0" Grid.Column="2" CornerRadius="6" Background="#1C1C1C" BorderBrush="#2E2E2E"
+                                BorderThickness="1" Padding="14,12" Margin="0,0,0,12" Cursor="Hand"
+                                MouseLeftButtonDown="OpenUsbRootDir_Click">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="#E8321A"/>
+                                            <Setter Property="Background" Value="#222222"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="💾 Thư Mục Gốc USB" FontSize="13" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Mở ổ đĩa USB trong File Explorer"
+                                           FontSize="11" Foreground="#888" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Button 3: Thư mục App -->
+                        <Border Grid.Row="1" Grid.Column="0" CornerRadius="6" Background="#1C1C1C" BorderBrush="#2E2E2E"
+                                BorderThickness="1" Padding="14,12" Cursor="Hand"
+                                MouseLeftButtonDown="OpenAppDir_Click">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="#E8321A"/>
+                                            <Setter Property="Background" Value="#222222"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="📦 Thư Mục App/ (Hệ Thống)" FontSize="13" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Chứa file thực thi chính, file cấu hình và settings.json"
+                                           FontSize="11" Foreground="#888" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Button 4: Thư mục cài trên máy -->
+                        <Border Grid.Row="1" Grid.Column="2" CornerRadius="6" Background="#1C1C1C" BorderBrush="#2E2E2E"
+                                BorderThickness="1" Padding="14,12" Cursor="Hand"
+                                MouseLeftButtonDown="OpenLocalDeployDir_Click">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="#E8321A"/>
+                                            <Setter Property="Background" Value="#222222"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="💻 Thư Mục Cài Đặt Trên Máy" FontSize="13" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="C:\Users\Public\MyGears (thư mục chạy tạm thời)"
+                                           FontSize="11" Foreground="#888" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Card 3: Thông Tin An Toàn ─────────────────────── -->
+            <Border CornerRadius="8" Background="#161616" BorderBrush="#252525" BorderThickness="1"
+                    Padding="20,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="🛡️" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Cơ Chế Bảo Mật &amp; An Toàn Dữ Liệu"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="• Mã Hóa AES-256 GCM:" FontWeight="SemiBold" Foreground="#00E676" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1" Text="Tài khoản &amp; mật khẩu được bảo vệ bằng mã PIN với 100,000 vòng lặp PBKDF2." Foreground="#AAA" FontSize="12"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="• Chống Chụp Trộm:" FontWeight="SemiBold" Foreground="#00E5FF" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1" Text="Cửa sổ tài khoản tự động thành khối đen khi có phần mềm bên ngoài cố ý chụp trộm." Foreground="#AAA" FontSize="12"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="• Tự Xóa Clipboard:" FontWeight="SemiBold" Foreground="#FFB300" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1" Text="Bộ nhớ tạm (clipboard) tự động được xóa sạch sau 30 giây kể từ khi bấm Copy." Foreground="#AAA" FontSize="12"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="• Tự Hủy Zero-Trace:" FontWeight="SemiBold" Foreground="#E8321A" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1" Text="Bấm nút Tự Hủy trên thanh công cụ để dọn sạch 100% mọi tàn dư trước khi bạn rời máy tính." Foreground="#AAA" FontSize="12"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

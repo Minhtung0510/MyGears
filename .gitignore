@@ -1,0 +1,29 @@
+## Build & Temp Artifacts
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log
+
+## Binaries and Release Packages
+App/
+Download/
+autorun.inf
+*.exe
+*.dll
+*.pdb
+
+## Security & Sensitive Personal Data
+accounts.enc
+*.pfx
+*.key
+
+## OS specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+System Volume Information/
