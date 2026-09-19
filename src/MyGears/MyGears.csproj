@@ -11,12 +11,6 @@
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
-    <!-- BUILD OUTPUT → D:\App\ (tương đối từ thư mục .csproj) -->
-    <OutputPath>..\..\App\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-
-    <!-- Portable: không publish self-contained mặc định, nhưng có thể dùng dotnet publish -->
     <Platforms>AnyCPU</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -29,15 +23,5 @@
     <!-- CommunityToolkit MVVM (INotifyPropertyChanged, RelayCommand...) -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
   </ItemGroup>
-
-  <!-- Copy manifest.json & settings.json vào App/ nếu chưa có (PreBuild) -->
-  <Target Name="EnsureRuntimeFiles" AfterTargets="Build">
-    <Copy SourceFiles="$(ProjectDir)RuntimeDefaults\manifest.json"
-          DestinationFiles="$(OutputPath)manifest.json"
-          Condition="!Exists('$(OutputPath)manifest.json')" />
-    <Copy SourceFiles="$(ProjectDir)RuntimeDefaults\settings.json"
-          DestinationFiles="$(OutputPath)settings.json"
-          Condition="!Exists('$(OutputPath)settings.json')" />
-  </Target>
 
 </Project>

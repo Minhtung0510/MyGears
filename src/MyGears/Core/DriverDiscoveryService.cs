@@ -453,6 +453,19 @@ public static class DriverDiscoveryService
                 alreadyExists = true;
             }
         }
+        else if (lower.Contains("discord"))
+        {
+            icon = "🎧";
+            name = $"Ứng dụng Voice Chat Discord ({baseName})";
+            desc = "Phần mềm đàm thoại voice chat và kết nối đồng đội chơi game";
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (Directory.Exists(Path.Combine(localAppData, "Discord")) ||
+                File.Exists(Path.Combine(localAppData, "Discord", "Update.exe")) ||
+                Directory.Exists(Path.Combine(targetSubDir, "Discord")))
+            {
+                alreadyExists = true;
+            }
+        }
         else if (lower.Contains("razer"))
         {
             icon = "🐍";
