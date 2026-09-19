@@ -36,7 +36,17 @@ public class VaultEnvelope
 /// </summary>
 public static class AccountVaultService
 {
-    private static string VaultFilePath => Path.Combine(UsbPathResolver.AppDir, "accounts.enc");
+    private static string VaultFilePath
+    {
+        get
+        {
+            var inApp = Path.Combine(UsbPathResolver.AppDir, "accounts.enc");
+            if (File.Exists(inApp)) return inApp;
+            var inRoot = Path.Combine(UsbPathResolver.UsbRoot, "accounts.enc");
+            if (File.Exists(inRoot)) return inRoot;
+            return inApp;
+        }
+    }
 
     /// <summary>
     /// Kiểm tra kho tài khoản đã được thiết lập mã PIN chưa

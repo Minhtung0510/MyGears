@@ -129,11 +129,17 @@ public static class UsbPathResolver
         UsbRoot = root;
         AppDir = Directory.Exists(Path.Combine(UsbRoot, "App"))
             ? Path.Combine(UsbRoot, "App")
-            : baseDir;
+            : UsbRoot;
 
         DownloadDir = Path.Combine(UsbRoot, "Download");
-        SettingsFile = Path.Combine(AppDir, "settings.json");
-        ManifestFile = Path.Combine(AppDir, "manifest.json");
+
+        var settingsInApp = Path.Combine(AppDir, "settings.json");
+        var settingsInRoot = Path.Combine(UsbRoot, "settings.json");
+        SettingsFile = File.Exists(settingsInApp) ? settingsInApp : (File.Exists(settingsInRoot) ? settingsInRoot : settingsInApp);
+
+        var manifestInApp = Path.Combine(AppDir, "manifest.json");
+        var manifestInRoot = Path.Combine(UsbRoot, "manifest.json");
+        ManifestFile = File.Exists(manifestInApp) ? manifestInApp : (File.Exists(manifestInRoot) ? manifestInRoot : manifestInApp);
 
         IsInitialized = true;
     }

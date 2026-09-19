@@ -48,8 +48,56 @@ public static class DeploymentService
                         ? comp.DestinationPath
                         : Path.Combine(targetRoot, "Download", comp.Id);
 
+                    if (comp.Id == "core_app")
+                    {
+                        onProgress?.Invoke("⚙️ Đang cài đặt ứng dụng MyGears Core…", 0.08);
+                        Directory.CreateDirectory(dest); // C:\Users\Public\MyGears\App
+
+                        var targetExe = Path.Combine(dest, "MyGears.exe");
+                        var currentExe = Environment.ProcessPath;
+
+                        // Nếu USB có folder App/ chứa file và khác gốc USB -> Chép folder
+                        if (!string.IsNullOrEmpty(comp.SourcePath) && Directory.Exists(comp.SourcePath) &&
+                            !comp.SourcePath.TrimEnd('\\', '/').Equals(UsbPathResolver.UsbRoot.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+                        {
+                            CopyDirectoryWithProgress(comp.SourcePath, dest, overwrite: true, totalBytes, ref copiedBytes, onProgress);
+                        }
+                        // Nếu đang chạy dưới dạng 1 file .exe duy nhất trên USB
+                        else if (!string.IsNullOrEmpty(currentExe) && File.Exists(currentExe))
+                        {
+                            try
+                            {
+                                File.Copy(currentExe, targetExe, overwrite: true);
+                            }
+                            catch (IOException) { }
+                        }
+                        else if (!string.IsNullOrEmpty(comp.CloudDownloadUrl))
+                        {
+                            CloudDownloadService.DownloadCloudAssetAsync(comp.CloudDownloadUrl, dest, onProgress).GetAwaiter().GetResult();
+                        }
+
+                        // Đồng bộ các file cấu hình quan trọng sang C:\Users\Public\MyGears\App
+                        var usbRoot = UsbPathResolver.UsbRoot;
+                        string[] configFiles = { "accounts.enc", "settings.json", "manifest.json" };
+                        foreach (var cf in configFiles)
+                        {
+                            var srcConfig = Path.Combine(usbRoot, cf);
+                            if (!File.Exists(srcConfig) && Directory.Exists(Path.Combine(usbRoot, "App")))
+                                srcConfig = Path.Combine(usbRoot, "App", cf);
+
+                            var destConfig = Path.Combine(dest, cf);
+                            if (File.Exists(srcConfig))
+                            {
+                                try { File.Copy(srcConfig, destConfig, overwrite: true); } catch { }
+                            }
+                        }
+
+                        continue;
+                    }
+
                     // TH1: Có sẵn thư mục offline trên USB -> Chép gia tăng
-                    if (!string.IsNullOrEmpty(comp.SourcePath) && Directory.Exists(comp.SourcePath))
+                    if (!string.IsNullOrEmpty(comp.SourcePath) && Directory.Exists(comp.SourcePath) &&
+                        !comp.SourcePath.TrimEnd('\\', '/').Equals(UsbPathResolver.UsbRoot.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
                     {
                         Directory.CreateDirectory(dest);
                         CopyDirectoryWithProgress(comp.SourcePath, dest, overwrite: true, totalBytes, ref copiedBytes, onProgress);
@@ -58,7 +106,7 @@ public static class DeploymentService
                     else if (!string.IsNullOrEmpty(comp.CloudDownloadUrl))
                     {
                         onProgress?.Invoke($"🌐 Đang tải {comp.Name} từ GitHub…", 0.15);
-                        bool ok = CloudDownloadService.DownloadAndExtractZipAsync(comp.CloudDownloadUrl, dest, onProgress).GetAwaiter().GetResult();
+                        bool ok = CloudDownloadService.DownloadCloudAssetAsync(comp.CloudDownloadUrl, dest, onProgress).GetAwaiter().GetResult();
                         if (!ok)
                         {
                             throw new Exception($"Không thể tải {comp.Name} từ GitHub. Vui lòng kiểm tra kết nối mạng Internet.");

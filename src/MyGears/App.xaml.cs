@@ -35,8 +35,11 @@ public partial class App : Application
         // Load settings từ USB
         await SettingsService.LoadAsync();
 
-        // Kiểm tra nếu được gọi với cờ --setup (từ file cài đặt Cài_Đặt_MyGears.exe)
-        if (e.Args.Contains("--setup"))
+        // Kiểm tra điều kiện khởi chạy:
+        // 1) Chạy từ USB HOẶC có cờ --setup -> Mở màn hình Setup
+        // 2) Chạy từ máy tính (hoặc có cờ --app / --dashboard) -> Mở trực tiếp Dashboard
+        bool forceApp = e.Args.Contains("--app") || e.Args.Contains("--dashboard") || e.Args.Contains("--from-usb-deploy");
+        if ((UsbPathResolver.IsRunningFromUsb || e.Args.Contains("--setup")) && !forceApp)
         {
             var setupWindow = new SetupWindow();
             MainWindow = setupWindow;

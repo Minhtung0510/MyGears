@@ -1,12 +1,22 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Text.Json;
 
 namespace MyGears.Core;
 
 /// <summary>
+/// Đại diện cho 1 file asset đính kèm trong GitHub Release
+/// </summary>
+public class CloudAssetInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public long SizeBytes { get; set; }
+}
+
+/// <summary>
 /// Dịch vụ tải driver và công cụ từ đám mây (GitHub Releases)
-/// khi USB không chứa sẵn thư mục Download offline để tối ưu dung lượng USB xuống siêu nhẹ (~2.3 MB).
 /// </summary>
 public static class CloudDownloadService
 {
@@ -39,22 +49,73 @@ public static class CloudDownloadService
     }
 
     /// <summary>
-    /// Tải file zip từ GitHub và giải nén trực tiếp vào thư mục đích với tiến trình phần trăm.
+    /// Gọi trực tiếp GitHub Releases API để lấy danh sách mọi file tải lên Release mới nhất
     /// </summary>
-    public static async Task<bool> DownloadAndExtractZipAsync(
+    public static async Task<List<CloudAssetInfo>> FetchLatestReleaseAssetsAsync()
+    {
+        try
+        {
+            var apiUrl = $"https://api.github.com/repos/{GitHubRepoOwner}/{GitHubRepoName}/releases/latest";
+            using var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+            request.Headers.UserAgent.ParseAdd("MyGearsApp");
+
+            using var response = await HttpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode) return new List<CloudAssetInfo>();
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("assets", out var assetsElem) || assetsElem.ValueKind != JsonValueKind.Array)
+            {
+                return new List<CloudAssetInfo>();
+            }
+
+            var result = new List<CloudAssetInfo>();
+            foreach (var asset in assetsElem.EnumerateArray())
+            {
+                var name = asset.GetProperty("name").GetString() ?? "";
+                var url = asset.GetProperty("browser_download_url").GetString() ?? "";
+                long size = asset.TryGetProperty("size", out var sizeProp) ? sizeProp.GetInt64() : 0;
+
+                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(url))
+                {
+                    result.Add(new CloudAssetInfo
+                    {
+                        Name = name,
+                        DownloadUrl = url,
+                        SizeBytes = size
+                    });
+                }
+            }
+            return result;
+        }
+        catch
+        {
+            return new List<CloudAssetInfo>();
+        }
+    }
+
+    /// <summary>
+    /// Tải file từ GitHub (hỗ trợ giải nén .zip tự động hoặc lưu file .exe trực tiếp).
+    /// </summary>
+    public static async Task<bool> DownloadCloudAssetAsync(
         string downloadUrl,
         string destinationDir,
         Action<string, double>? onProgress = null)
     {
-        string? tempZipPath = null;
+        string? tempPath = null;
         try
         {
             Directory.CreateDirectory(destinationDir);
 
-            var tempDir = Path.GetTempPath();
-            tempZipPath = Path.Combine(tempDir, $"mygears_dl_{Guid.NewGuid():N}.zip");
+            var uri = new Uri(downloadUrl);
+            var rawFileName = Path.GetFileName(uri.LocalPath);
+            bool isZip = rawFileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
 
-            onProgress?.Invoke("🌐 Đang kết nối tới đám mây GitHub…", 0.05);
+            var tempDir = Path.GetTempPath();
+            var ext = Path.GetExtension(rawFileName);
+            tempPath = Path.Combine(tempDir, $"mygears_dl_{Guid.NewGuid():N}{ext}");
+
+            onProgress?.Invoke($"🌐 Đang kết nối tới đám mây GitHub ({rawFileName})…", 0.05);
 
             using (var response = await HttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
             {
@@ -62,7 +123,7 @@ public static class CloudDownloadService
 
                 long? totalBytes = response.Content.Headers.ContentLength;
                 await using var contentStream = await response.Content.ReadAsStreamAsync();
-                await using var fileStream = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                await using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
                 var buffer = new byte[16384];
                 long totalRead = 0;
@@ -78,23 +139,32 @@ public static class CloudDownloadService
                         double progress = (double)totalRead / totalBytes.Value;
                         double mbRead = totalRead / (1024.0 * 1024.0);
                         double mbTotal = totalBytes.Value / (1024.0 * 1024.0);
-                        onProgress?.Invoke($"⬇ Đang tải từ GitHub: {mbRead:0.#} MB / {mbTotal:0.#} MB ({progress:P0})…", Math.Min(0.85, 0.05 + progress * 0.8));
+                        onProgress?.Invoke($"⬇ Đang tải {rawFileName}: {mbRead:0.#} MB / {mbTotal:0.#} MB ({progress:P0})…", Math.Min(0.85, 0.05 + progress * 0.8));
                     }
                     else
                     {
                         double mbRead = totalRead / (1024.0 * 1024.0);
-                        onProgress?.Invoke($"⬇ Đang tải từ GitHub: {mbRead:0.#} MB…", 0.5);
+                        onProgress?.Invoke($"⬇ Đang tải {rawFileName}: {mbRead:0.#} MB…", 0.5);
                     }
                 }
             }
 
-            onProgress?.Invoke("📦 Đang giải nén driver vào máy tính…", 0.90);
-            await Task.Run(() =>
+            if (isZip)
             {
-                ZipFile.ExtractToDirectory(tempZipPath, destinationDir, overwriteFiles: true);
-            });
+                onProgress?.Invoke($"📦 Đang giải nén {rawFileName} vào máy tính…", 0.90);
+                await Task.Run(() =>
+                {
+                    ZipFile.ExtractToDirectory(tempPath, destinationDir, overwriteFiles: true);
+                });
+            }
+            else
+            {
+                onProgress?.Invoke($"💾 Đang lưu file {rawFileName}…", 0.90);
+                var destFile = Path.Combine(destinationDir, rawFileName);
+                File.Copy(tempPath, destFile, overwrite: true);
+            }
 
-            onProgress?.Invoke("✅ Tải và giải nén thành công!", 0.98);
+            onProgress?.Invoke("✅ Tải và xử lý hoàn tất!", 0.98);
             return true;
         }
         catch (Exception ex)
@@ -104,10 +174,18 @@ public static class CloudDownloadService
         }
         finally
         {
-            if (!string.IsNullOrEmpty(tempZipPath) && File.Exists(tempZipPath))
+            if (!string.IsNullOrEmpty(tempPath) && File.Exists(tempPath))
             {
-                try { File.Delete(tempZipPath); } catch { }
+                try { File.Delete(tempPath); } catch { }
             }
         }
     }
+
+    /// <summary>
+    /// Tương thích ngược với DownloadAndExtractZipAsync
+    /// </summary>
+    public static Task<bool> DownloadAndExtractZipAsync(
+        string downloadUrl,
+        string destinationDir,
+        Action<string, double>? onProgress = null) => DownloadCloudAssetAsync(downloadUrl, destinationDir, onProgress);
 }

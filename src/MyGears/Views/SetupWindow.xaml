@@ -213,8 +213,11 @@
                                         Style="{StaticResource ToolbarButtonStyle}" Padding="12,5" Margin="0,0,8,0"
                                         FontSize="11.5"/>
                                 <Button Content="Bỏ chọn driver tùy chọn" Command="{Binding DeselectOptionalCommand}"
-                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5"
+                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5" Margin="0,0,8,0"
                                         FontSize="11.5"/>
+                                <Button Content="⚡ Mở trực tiếp MyGears" Command="{Binding LaunchDirectlyCommand}"
+                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5"
+                                        Foreground="#00E5FF" FontSize="11.5" ToolTip="Mở MyGears ngay trên USB mà không cần sao chép vào máy tính"/>
                             </StackPanel>
 
                             <!-- Summary text -->

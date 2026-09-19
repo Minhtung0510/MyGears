@@ -18,6 +18,8 @@ autorun.inf
 
 ## Security & Sensitive Personal Data
 accounts.enc
+settings.json
+icon.ico
 *.pfx
 *.key
 

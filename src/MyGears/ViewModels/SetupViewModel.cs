@@ -37,6 +37,62 @@ public partial class SetupViewModel : ObservableObject
             Components.Add(comp);
         }
         UpdateSummary();
+
+        // Tự động quét thêm các asset driver mới nhất từ GitHub Releases
+        _ = RefreshCloudAssetsAsync();
+    }
+
+    private async Task RefreshCloudAssetsAsync()
+    {
+        try
+        {
+            var cloudAssets = await CloudDownloadService.FetchLatestReleaseAssetsAsync();
+            if (cloudAssets == null || cloudAssets.Count == 0) return;
+
+            var targetRoot = UsbPathResolver.LocalDeployTargetDir;
+
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                foreach (var asset in cloudAssets)
+                {
+                    // Bỏ qua MyGears-App.zip (đây là app core bundle)
+                    if (asset.Name.StartsWith("MyGears-App", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var baseName = System.IO.Path.GetFileNameWithoutExtension(asset.Name);
+                    var id = $"cloud_{baseName.ToLowerInvariant()}";
+
+                    var existing = Components.FirstOrDefault(c =>
+                        c.Id == id ||
+                        c.Id.EndsWith(baseName.ToLowerInvariant()) ||
+                        c.Name.Contains(baseName, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(c.CloudDownloadUrl) && c.CloudDownloadUrl.Contains(asset.Name, StringComparison.OrdinalIgnoreCase)));
+
+                    if (existing != null)
+                    {
+                        existing.CloudDownloadUrl = asset.DownloadUrl;
+                        existing.SizeBytes = asset.SizeBytes;
+                        existing.SizeDisplay = $"{DriverDiscoveryService.FormatSize(asset.SizeBytes)} (Cloud)";
+                    }
+                    else
+                    {
+                        var newComp = DriverDiscoveryService.CreateComponentFromCloudAsset(asset, targetRoot);
+                        newComp.PropertyChanged += Comp_PropertyChanged;
+
+                        int insertIndex = Components.Count;
+                        var shortcut = Components.FirstOrDefault(c => c.Id == "desktop_shortcut");
+                        if (shortcut != null)
+                        {
+                            var idx = Components.IndexOf(shortcut);
+                            if (idx >= 0) insertIndex = idx;
+                        }
+
+                        Components.Insert(insertIndex, newComp);
+                    }
+                }
+                UpdateSummary();
+            });
+        }
+        catch { }
     }
 
     private void Comp_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -155,5 +211,14 @@ public partial class SetupViewModel : ObservableObject
     {
         RequestClose?.Invoke();
         Application.Current.Shutdown();
+    }
+
+    [RelayCommand]
+    public void LaunchDirectly()
+    {
+        RequestClose?.Invoke();
+        var depWindow = new MyGears.Views.DependencyCheckWindow();
+        Application.Current.MainWindow = depWindow;
+        depWindow.Show();
     }
 }

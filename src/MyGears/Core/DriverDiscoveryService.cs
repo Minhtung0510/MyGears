@@ -42,11 +42,22 @@ public static class DriverDiscoveryService
 
         // 1. Core Application (Luôn bắt buộc)
         var appDir = Path.Combine(usbRoot, "App");
-        if (!Directory.Exists(appDir))
+        long appSizeBytes = 0;
+        if (Directory.Exists(appDir) && Directory.GetFiles(appDir).Length > 0)
+        {
+            appSizeBytes = GetDirectorySize(appDir);
+        }
+        else if (!string.IsNullOrEmpty(Environment.ProcessPath) && File.Exists(Environment.ProcessPath))
+        {
+            appDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+            appSizeBytes = new FileInfo(Environment.ProcessPath).Length;
+        }
+        else
         {
             appDir = AppContext.BaseDirectory;
+            appSizeBytes = GetDirectorySize(appDir);
         }
-        long appSizeBytes = GetDirectorySize(appDir);
+
         bool appExistsOnPc = Directory.Exists(Path.Combine(targetRoot, "App")) &&
                              File.Exists(Path.Combine(targetRoot, "App", "MyGears.exe"));
 
@@ -381,6 +392,205 @@ public static class DriverDiscoveryService
         });
 
         return list;
+    }
+
+    /// <summary>
+    /// Tạo 1 InstallableComponent hoàn chỉnh từ thông tin file đính kèm trên GitHub Releases
+    /// </summary>
+    public static InstallableComponent CreateComponentFromCloudAsset(CloudAssetInfo asset, string targetRoot)
+    {
+        var rawName = asset.Name;
+        var baseName = Path.GetFileNameWithoutExtension(rawName);
+        var lower = baseName.ToLowerInvariant();
+
+        var progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var targetSubDir = Path.Combine(targetRoot, "Download", baseName);
+
+        // Kiểm tra xem đã có thư mục hoặc file trong C:\Users\Public\MyGears\Download\<baseName> chưa
+        bool alreadyExists = Directory.Exists(targetSubDir) && Directory.EnumerateFileSystemEntries(targetSubDir).Any();
+
+        string name;
+        string desc;
+        string icon;
+
+        if (lower.Contains("scyrox"))
+        {
+            icon = "🖱️";
+            name = "Driver Chuột ScyRox V6 (GitHub Cloud)";
+            desc = "Phần mềm tùy chỉnh DPI, Polling rate 8K, LOD và gán nút chuột ScyRox V6";
+            if (File.Exists(Path.Combine(targetSubDir, "ScyRox.exe")) ||
+                File.Exists(Path.Combine(progFiles, "ScyRox", "Sys64", "ScyRox.exe")) ||
+                File.Exists(Path.Combine(progFiles, "ScyRox", "Sys32", "ScyRox.exe")) ||
+                Directory.Exists(Path.Combine(progFiles, "ScyRox")) ||
+                Directory.Exists(Path.Combine(progFilesX86, "ScyRox")))
+            {
+                alreadyExists = true;
+            }
+        }
+        else if (lower.Contains("webview"))
+        {
+            icon = "🌐";
+            name = "Microsoft WebView2 Runtime (GitHub Cloud)";
+            desc = "Bộ cài runtime Microsoft để hiển thị giao diện bàn phím hub.fgg.com.cn";
+            try
+            {
+                var wvVer = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();
+                if (!string.IsNullOrEmpty(wvVer)) alreadyExists = true;
+            }
+            catch { }
+        }
+        else if (lower.Contains("fxsound") || lower.Contains("sound") || lower.Contains("audio"))
+        {
+            icon = "🔊";
+            name = $"Tiện ích Tăng Âm Lượng FxSound ({baseName})";
+            desc = "Khuếch đại âm lượng tai nghe, tăng bass và cân bằng EQ âm thanh game";
+            if (Directory.Exists(Path.Combine(progFiles, "FxSound LLC")) ||
+                Directory.Exists(Path.Combine(progFiles, "FxSound")) ||
+                Directory.Exists(Path.Combine(progFilesX86, "FxSound LLC")) ||
+                Directory.Exists(Path.Combine(progFilesX86, "FxSound")))
+            {
+                alreadyExists = true;
+            }
+        }
+        else if (lower.Contains("razer"))
+        {
+            icon = "🐍";
+            name = $"Driver Razer ({baseName})";
+            desc = "Phần mềm điều khiển thiết bị Razer Gaming / Synapse";
+            if (Directory.Exists(Path.Combine(progFiles, "Razer")) || Directory.Exists(Path.Combine(progFilesX86, "Razer")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("logitech") || lower.Contains("ghub") || lower.Contains("g_hub"))
+        {
+            icon = "🎮";
+            name = $"Driver Logitech G ({baseName})";
+            desc = "Phần mềm tùy chỉnh gear Logitech G HUB";
+            if (Directory.Exists(Path.Combine(progFiles, "LGHUB")) || Directory.Exists(Path.Combine(progFilesX86, "LGHUB")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("woot"))
+        {
+            icon = "⌨️";
+            name = $"Driver Bàn Phím Wooting ({baseName})";
+            desc = "Tiện ích chỉnh Rapid Trigger, Tachyon Mode và Analog Switch";
+            if (Directory.Exists(Path.Combine(progFiles, "Wooting")) || Directory.Exists(Path.Combine(progFilesX86, "Wooting")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("atk") || lower.Contains("vxe") || lower.Contains("vgn"))
+        {
+            icon = "⚡";
+            name = $"Driver ATK / VXE Hub ({baseName})";
+            desc = "Phần mềm điều khiển chuột / bàn phím ATK & VXE";
+            if (Directory.Exists(Path.Combine(progFiles, baseName)) || Directory.Exists(Path.Combine(progFilesX86, baseName)))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("lamzu"))
+        {
+            icon = "🐾";
+            name = $"Driver Chuột Lamzu ({baseName})";
+            desc = "Phần mềm tùy chỉnh chuột Lamzu Gaming";
+            if (Directory.Exists(Path.Combine(progFiles, "LAMZU")) || Directory.Exists(Path.Combine(progFilesX86, "LAMZU")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("pulsar"))
+        {
+            icon = "💫";
+            name = $"Driver Gear Pulsar ({baseName})";
+            desc = "Phần mềm Pulsar Fusion / chuột bàn phím Pulsar";
+            if (Directory.Exists(Path.Combine(progFiles, "Pulsar")) || Directory.Exists(Path.Combine(progFilesX86, "Pulsar")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("ninjutso") || lower.Contains("sora"))
+        {
+            icon = "🥷";
+            name = $"Driver Chuột Ninjutso ({baseName})";
+            desc = "Phần mềm tùy chỉnh chuột Ninjutso Sora";
+            if (Directory.Exists(Path.Combine(progFiles, "Ninjutso")) || Directory.Exists(Path.Combine(progFilesX86, "Ninjutso")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("darmoshark"))
+        {
+            icon = "🦈";
+            name = $"Driver Darmoshark ({baseName})";
+            desc = "Phần mềm tùy chỉnh chuột / phím Darmoshark";
+            if (Directory.Exists(Path.Combine(progFiles, "Darmoshark")) || Directory.Exists(Path.Combine(progFilesX86, "Darmoshark")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("steelseries") || lower.Contains("steel"))
+        {
+            icon = "🎯";
+            name = $"Driver SteelSeries ({baseName})";
+            desc = "Phần mềm SteelSeries GG / Engine";
+            if (Directory.Exists(Path.Combine(progFiles, "SteelSeries")) || Directory.Exists(Path.Combine(progFilesX86, "SteelSeries")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("corsair") || lower.Contains("icue"))
+        {
+            icon = "⛵";
+            name = $"Driver Corsair ({baseName})";
+            desc = "Phần mềm Corsair iCUE Gaming";
+            if (Directory.Exists(Path.Combine(progFiles, "Corsair")) || Directory.Exists(Path.Combine(progFilesX86, "Corsair")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("zowie"))
+        {
+            icon = "🔴";
+            name = $"Driver Zowie ({baseName})";
+            desc = "Công cụ điều khiển màn hình / chuột Zowie";
+            if (Directory.Exists(Path.Combine(progFiles, "ZOWIE")) || Directory.Exists(Path.Combine(progFilesX86, "ZOWIE")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("asus") || lower.Contains("rog") || lower.Contains("armoury"))
+        {
+            icon = "👁️";
+            name = $"Driver ASUS ROG ({baseName})";
+            desc = "Tiện ích cấu hình ASUS ROG Gear";
+            if (Directory.Exists(Path.Combine(progFiles, "ASUS")) || Directory.Exists(Path.Combine(progFilesX86, "ASUS")))
+                alreadyExists = true;
+        }
+        else if (lower.Contains("fgg") || lower.Contains("fl_esport") || lower.Contains("flesport"))
+        {
+            icon = "⌨️";
+            name = $"Driver FL-Esports ({baseName})";
+            desc = "Phần mềm tùy chỉnh bàn phím FL-Esports";
+            if (Directory.Exists(Path.Combine(progFiles, "FL-ESPORTS")) || Directory.Exists(Path.Combine(progFilesX86, "FL-ESPORTS")))
+                alreadyExists = true;
+        }
+        else
+        {
+            icon = "📦";
+            name = $"Driver / Tiện ích: {baseName}";
+            desc = $"Gói cài đặt tự động từ GitHub Release ({FormatSize(asset.SizeBytes)})";
+            if (Directory.Exists(Path.Combine(progFiles, baseName)) || Directory.Exists(Path.Combine(progFilesX86, baseName)))
+                alreadyExists = true;
+        }
+
+        if (alreadyExists)
+        {
+            desc += " (Đã có sẵn trên máy tính, mặc định bỏ qua không tải lại)";
+        }
+        else
+        {
+            desc += " (Tự động tải từ GitHub)";
+        }
+
+        return new InstallableComponent
+        {
+            Id = $"cloud_{lower}",
+            Name = name,
+            Description = desc,
+            Icon = icon,
+            SourcePath = string.Empty,
+            DestinationPath = targetSubDir,
+            CloudDownloadUrl = asset.DownloadUrl,
+            SizeBytes = asset.SizeBytes,
+            SizeDisplay = $"{FormatSize(asset.SizeBytes)} (Cloud)",
+            IsRequired = false,
+            IsSelected = !alreadyExists,
+            IsAlreadyInstalled = alreadyExists,
+            StatusBadge = alreadyExists ? "✅ Đã có trên máy (Bỏ qua)" : "☁️ Tải từ GitHub"
+        };
     }
 
     public static long GetDirectorySize(string path)
