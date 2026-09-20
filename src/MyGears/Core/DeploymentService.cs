@@ -92,6 +92,19 @@ public static class DeploymentService
                             }
                         }
 
+                        // Đảm bảo manifest.json luôn tồn tại tại thư mục đích
+                        var destManifest = Path.Combine(dest, "manifest.json");
+                        if (!File.Exists(destManifest))
+                        {
+                            try
+                            {
+                                var defaultManifest = Dependency.DependencyChecker.GetDefaultManifest();
+                                var jsonStr = System.Text.Json.JsonSerializer.Serialize(defaultManifest, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                                File.WriteAllText(destManifest, jsonStr);
+                            }
+                            catch { }
+                        }
+
                         continue;
                     }
 
