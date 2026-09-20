@@ -29,3 +29,11 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 System Volume Information/
+
+## Windows USB Boot & Setup Files
+boot/
+bootmgr
+bootmgr.efi
+efi/
+setup.exe.config
+sources/

@@ -86,6 +86,47 @@
         <GradientStop Color="#181C25" Offset="1.0"/>
     </LinearGradientBrush>
 
+    <!-- Nền mặt đồng hồ đo cổ điển (Vintage Meter Dial Face) -->
+    <RadialGradientBrush x:Key="DialFaceGradient" Center="0.5,0.75" GradientOrigin="0.5,0.75" RadiusX="0.75" RadiusY="0.75">
+        <GradientStop Color="#2A2216" Offset="0.0"/>
+        <GradientStop Color="#18140D" Offset="0.65"/>
+        <GradientStop Color="#0F0C08" Offset="1.0"/>
+    </RadialGradientBrush>
+
+    <!-- Viền kim loại dập nổi (Beveled Brass Rim) -->
+    <LinearGradientBrush x:Key="BrassBezelGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F3C05B" Offset="0.0"/>
+        <GradientStop Color="#8C6718" Offset="0.5"/>
+        <GradientStop Color="#D4AF37" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <!-- Thân máy kim loại thép phay xước (Machined Chassis Slate) -->
+    <LinearGradientBrush x:Key="ChassisRackGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#171A21" Offset="0.0"/>
+        <GradientStop Color="#12141A" Offset="0.5"/>
+        <GradientStop Color="#0D0E12" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <!-- ── Ốc Vít Lục Giác Tán Đồng 4 Góc (Vintage Brass Hex Screw Cap) ── -->
+    <Style x:Key="BrassScrewCapStyle" TargetType="Control">
+        <Setter Property="IsHitTestVisible" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Control">
+                    <Border Width="18" Height="18" CornerRadius="9"
+                            Background="{StaticResource PlateBevelGradient}"
+                            BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.2">
+                        <Grid>
+                            <Line X1="3" Y1="9" X2="15" Y2="9" Stroke="{StaticResource AccentGold}" StrokeThickness="1.2"/>
+                            <Line X1="9" Y1="3" X2="9" Y2="15" Stroke="{StaticResource AccentGold}" StrokeThickness="1.2"/>
+                            <Ellipse Width="6" Height="6" Stroke="{StaticResource AccentBrass}" StrokeThickness="0.8"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ── Typography ──────────────────────────────────────────── -->
     <FontFamily x:Key="AppFont">Segoe UI, Consolas, Arial, sans-serif</FontFamily>
     <FontFamily x:Key="MonoFont">Consolas, 'Cascadia Code', Courier New, monospace</FontFamily>
@@ -101,6 +142,12 @@
         <Setter Property="ResizeMode"       Value="CanResizeWithGrip"/>
         <Setter Property="BorderBrush"      Value="{StaticResource AccentBrass}"/>
         <Setter Property="BorderThickness"  Value="1"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
+        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
     </Style>
 
     <!-- ── Sidebar Item Button (Vintage Mechanical Switch) ─────── -->
@@ -342,10 +389,15 @@
         </Setter>
     </Style>
 
-    <!-- ── TextBlock defaults ──────────────────────────────────── -->
+    <!-- ── TextBlock defaults & Crisp Display Rendering ─────────── -->
     <Style TargetType="TextBlock">
         <Setter Property="Foreground"  Value="{StaticResource TextPrimary}"/>
         <Setter Property="FontFamily"  Value="{StaticResource AppFont}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+        <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
     </Style>
 
     <!-- ── ScrollBar Cổ Điển Mảnh (Vintage Sleek ScrollBar) ─────── -->

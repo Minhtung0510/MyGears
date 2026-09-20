@@ -19,6 +19,28 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _isSyncingToUsb;
     [ObservableProperty] private bool _isSelfDestructing;
 
+    // Hardware Specs & Telemetry
+    [ObservableProperty] private string _specsCpu = string.Empty;
+    [ObservableProperty] private string _specsGpu = string.Empty;
+    [ObservableProperty] private string _specsRam = string.Empty;
+    [ObservableProperty] private string _specsOs = string.Empty;
+    [ObservableProperty] private string _specsHost = string.Empty;
+    [ObservableProperty] private string _specsDisk = string.Empty;
+    [ObservableProperty] private string _specsNet = string.Empty;
+    
+    // Live Dynamics (CPU, RAM, Network)
+    [ObservableProperty] private double _currentCpuLoad = 0;
+    [ObservableProperty] private int _currentRamLoad = 0;
+    [ObservableProperty] private double _ramUsedGb = 0;
+    [ObservableProperty] private double _totalRamGb = 0;
+    [ObservableProperty] private string _ramDetailText = string.Empty;
+
+    // Network Telemetry
+    [ObservableProperty] private long _netPingMs = 30;
+    [ObservableProperty] private string _netPingText = "30 ms";
+    [ObservableProperty] private string _netSpeedText = "↓ 0 KB/s  ↑ 0 KB/s";
+    [ObservableProperty] private string _netAdapterText = "Ethernet";
+
     public ObservableCollection<IGearModule> Modules { get; } = [];
 
     public MainViewModel()
@@ -35,6 +57,48 @@ public partial class MainViewModel : ObservableObject
         UsbRootDisplay = UsbPathResolver.IsInitialized ? UsbPathResolver.UsbRoot : "?";
         IsRunningFromUsb = UsbPathResolver.IsRunningFromUsb;
         IsDeployedLocally = UsbPathResolver.IsDeployedLocally;
+
+        // Tải thông số cấu hình phần cứng của máy tính
+        LoadSystemSpecs();
+    }
+
+    public void LoadSystemSpecs()
+    {
+        try
+        {
+            var specs = SystemSpecsService.GetSpecs();
+            SpecsCpu = $"{specs.CpuName} ({specs.CpuThreads} luồng)";
+            SpecsGpu = specs.GpuName;
+            TotalRamGb = specs.TotalRamGb;
+            RamUsedGb = specs.UsedRamGb;
+            SpecsRam = $"{specs.TotalRamGb:F1} GB";
+            RamDetailText = $"{specs.UsedRamGb:F1} GB / {specs.TotalRamGb:F1} GB";
+            SpecsOs = specs.OsDisplay;
+            SpecsHost = specs.HostName;
+            SpecsDisk = specs.DiskDisplay;
+            SpecsNet = specs.ActiveNetworkAdapter;
+            CurrentRamLoad = specs.RamUsagePercent;
+        }
+        catch { }
+    }
+
+    public void UpdateLiveTelemetry()
+    {
+        try
+        {
+            var tel = SystemSpecsService.GetLiveTelemetry();
+            CurrentCpuLoad = tel.CpuLoadPercent;
+            CurrentRamLoad = tel.RamUsagePercent;
+            RamUsedGb = tel.RamUsedGb;
+            TotalRamGb = tel.RamTotalGb;
+            RamDetailText = $"{tel.RamUsedGb:F1} GB / {tel.RamTotalGb:F1} GB";
+
+            NetPingMs = tel.PingMs;
+            NetPingText = tel.PingDisplay;
+            NetSpeedText = tel.NetworkSpeedDisplay;
+            NetAdapterText = tel.ActiveAdapterName;
+        }
+        catch { }
     }
 
     [RelayCommand]

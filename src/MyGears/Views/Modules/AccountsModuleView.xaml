@@ -6,7 +6,7 @@
 
     <Grid>
         <!-- ══════════════════════════════════════════════════
-             MÀN HÌNH 1: KHÓA MÃ PIN (VINTAGE BRASS VAULT)
+             MÀN HÌNH 1: KHÓA MÃ PIN (ANTIQUE BRASS SAFE VAULT)
              ══════════════════════════════════════════════════ -->
         <Border x:Name="PanelPinLocked" Background="{StaticResource BgDeep}" Visibility="Visible">
             <Grid>
@@ -16,62 +16,99 @@
                                Margin="-210,-210,0,0" Style="{StaticResource SlowGearSpinStyle}"/>
                 </Canvas>
 
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-                    <!-- Icon Khiên & Khóa Cơ Khí -->
-                    <Border Width="72" Height="72" CornerRadius="18"
-                            Background="{StaticResource PlateBevelGradient}"
-                            BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5" Margin="0,0,0,22"
-                            HorizontalAlignment="Center">
-                        <Border.Effect>
-                            <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
-                        </Border.Effect>
-                        <TextBlock Text="🔐" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
+                <!-- Cửa Két Sắt Kim Loại Cổ Điển (Antique Vault Door Assembly) -->
+                <Border Width="480" Background="{StaticResource ChassisRackGradient}"
+                        BorderBrush="{StaticResource BrassBezelGradient}" BorderThickness="2"
+                        CornerRadius="14" Padding="32,28" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="4" Opacity="0.8"/>
+                    </Border.Effect>
+                    <Grid>
+                        <!-- 4 Then chốt thép cơ học hai bên két sắt (Mechanical Vault Locking Bolts) -->
+                        <Canvas IsHitTestVisible="False">
+                            <Border Canvas.Left="-44" Canvas.Top="50" Width="24" Height="14" CornerRadius="2"
+                                    Background="{StaticResource BrushedBrassGradient}" BorderBrush="#3A2A12" BorderThickness="1"/>
+                            <Border Canvas.Left="-44" Canvas.Top="160" Width="24" Height="14" CornerRadius="2"
+                                    Background="{StaticResource BrushedBrassGradient}" BorderBrush="#3A2A12" BorderThickness="1"/>
+                            <Border Canvas.Right="-44" Canvas.Top="50" Width="24" Height="14" CornerRadius="2"
+                                    Background="{StaticResource BrushedBrassGradient}" BorderBrush="#3A2A12" BorderThickness="1"/>
+                            <Border Canvas.Right="-44" Canvas.Top="160" Width="24" Height="14" CornerRadius="2"
+                                    Background="{StaticResource BrushedBrassGradient}" BorderBrush="#3A2A12" BorderThickness="1"/>
+                        </Canvas>
 
-                    <TextBlock Text="KHO TÀI KHOẢN BẢO MẬT" FontSize="19" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Mã Hóa AES-256 • Chống Chụp Trộm Màn Hình" FontSize="12"
-                               Foreground="{StaticResource AccentGold}" HorizontalAlignment="Center" Margin="0,5,0,26"/>
+                        <StackPanel HorizontalAlignment="Center" Width="380">
+                            <!-- Vòng Xoay Mật Mã Tròn Trung Tâm (Rotary Combination Dial) -->
+                            <Grid Width="120" Height="120" Margin="0,0,0,18" HorizontalAlignment="Center">
+                                <!-- Vành số ngoài dập răng cưa (Knurled Dial Ring) -->
+                                <Ellipse Width="120" Height="120" Fill="{StaticResource DialFaceGradient}"
+                                         Stroke="{StaticResource BrassBezelGradient}" StrokeThickness="3"/>
+                                <!-- Vạch chia độ mật mã -->
+                                <Canvas Width="120" Height="120">
+                                    <Path Data="M 15,60 A 45,45 0 1 1 105,60" Stroke="#7C6538" StrokeThickness="1.5"/>
+                                    <TextBlock Text="0" Canvas.Left="56" Canvas.Top="12" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                                    <TextBlock Text="25" Canvas.Left="94" Canvas.Top="52" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                                    <TextBlock Text="50" Canvas.Left="53" Canvas.Top="94" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                                    <TextBlock Text="75" Canvas.Left="14" Canvas.Top="52" FontSize="9" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                                </Canvas>
+                                <!-- Trục tay quay 3 chấu (Crossed Wheel Spoke) -->
+                                <Grid Style="{StaticResource SlowGearSpinStyle}">
+                                    <Rectangle Width="80" Height="8" Fill="{StaticResource BrushedBrassGradient}" RadiusX="2" RadiusY="2"/>
+                                    <Rectangle Width="8" Height="80" Fill="{StaticResource BrushedBrassGradient}" RadiusX="2" RadiusY="2"/>
+                                </Grid>
+                                <!-- Núm vặn trung tâm (Center Brass Hub) -->
+                                <Border Width="40" Height="40" CornerRadius="20"
+                                        Background="{StaticResource PlateBevelGradient}"
+                                        BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5">
+                                    <TextBlock Text="🔒" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
 
-                    <!-- Form Thiết Lập PIN Lần Đầu -->
-                    <StackPanel x:Name="PanelSetupPin" Visibility="Collapsed">
-                        <TextBlock Text="Thiết lập mã PIN cá nhân để bảo vệ tài khoản:"
-                                   Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,0,8"/>
-                        <PasswordBox x:Name="TxtNewPin" Height="42" Background="#12151B" Foreground="{StaticResource TextPrimary}"
-                                     CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
-                                     FontSize="16" Padding="10,8" HorizontalContentAlignment="Center"/>
+                            <TextBlock Text="KHO MẬT MÃ CƠ HỌC • AES-256" FontSize="16" FontWeight="Bold"
+                                       Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                            <TextBlock Text="Cơ Chế Bảo Vệ Chống Chụp Trộm • Tự Xóa Clipboard Sau 25s" FontSize="11"
+                                       Foreground="{StaticResource AccentGold}" HorizontalAlignment="Center" Margin="0,4,0,20"/>
 
-                        <TextBlock Text="Nhập lại mã PIN xác nhận:"
-                                   Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,14,0,8"/>
-                        <PasswordBox x:Name="TxtConfirmPin" Height="42" Background="#12151B" Foreground="{StaticResource TextPrimary}"
-                                     CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
-                                     FontSize="16" Padding="10,8" HorizontalContentAlignment="Center"/>
+                            <!-- Form Thiết Lập PIN Lần Đầu -->
+                            <StackPanel x:Name="PanelSetupPin" Visibility="Collapsed">
+                                <TextBlock Text="Thiết lập mã PIN cá nhân để bảo vệ tài khoản:"
+                                           Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,0,8"/>
+                                <PasswordBox x:Name="TxtNewPin" Height="42" Background="#12151B" Foreground="{StaticResource TextPrimary}"
+                                             CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                                             FontSize="16" Padding="10,8" HorizontalContentAlignment="Center"/>
 
-                        <Button Content="Tạo Mã PIN &amp; Mở Khóa" Height="44" Margin="0,22,0,0"
-                                Style="{StaticResource AccentButtonStyle}"
-                                Cursor="Hand" Click="BtnSetupPin_Click"/>
-                    </StackPanel>
+                                <TextBlock Text="Nhập lại mã PIN xác nhận:"
+                                           Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,14,0,8"/>
+                                <PasswordBox x:Name="TxtConfirmPin" Height="42" Background="#12151B" Foreground="{StaticResource TextPrimary}"
+                                             CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                                             FontSize="16" Padding="10,8" HorizontalContentAlignment="Center"/>
 
-                    <!-- Form Nhập PIN Để Mở Khóa -->
-                    <StackPanel x:Name="PanelEnterPin" Visibility="Visible" RenderTransformOrigin="0.5,0.5">
-                        <StackPanel.RenderTransform>
-                            <TranslateTransform x:Name="PinShakeTransform" X="0"/>
-                        </StackPanel.RenderTransform>
-                        <TextBlock Text="Nhập mã PIN cá nhân để mở khóa danh sách:"
-                                   Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,0,10" HorizontalAlignment="Center"/>
-                        <PasswordBox x:Name="TxtUnlockPin" Height="46" Background="#12151B" Foreground="{StaticResource TextPrimary}"
-                                     CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1.2"
-                                     FontSize="19" Padding="12,8" HorizontalContentAlignment="Center" KeyDown="TxtUnlockPin_KeyDown"/>
+                                <Button Content="Tạo Mã PIN &amp; Mở Khóa" Height="44" Margin="0,22,0,0"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Cursor="Hand" Click="BtnSetupPin_Click"/>
+                            </StackPanel>
 
-                        <Button Content="🔓 Mở Khóa Kho Tài Khoản" Height="44" Margin="0,18,0,0"
-                                Style="{StaticResource AccentButtonStyle}"
-                                Cursor="Hand" Click="BtnUnlock_Click"/>
-                    </StackPanel>
+                            <!-- Form Nhập PIN Để Mở Khóa -->
+                            <StackPanel x:Name="PanelEnterPin" Visibility="Visible" RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <TranslateTransform x:Name="PinShakeTransform" X="0"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="Nhập mã PIN cá nhân để xoay chốt mở két sắt:"
+                                           Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                                <PasswordBox x:Name="TxtUnlockPin" Height="46" Background="#0F1218" Foreground="{StaticResource TextPrimary}"
+                                             CaretBrush="{StaticResource AccentGold}" BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.2"
+                                             FontSize="20" Padding="12,8" HorizontalContentAlignment="Center" KeyDown="TxtUnlockPin_KeyDown"/>
 
-                    <!-- Thông báo lỗi PIN -->
-                    <TextBlock x:Name="LblPinError" Text="" Foreground="{StaticResource VintageRuby}" FontSize="12"
-                               HorizontalAlignment="Center" Margin="0,14,0,0" Visibility="Collapsed"/>
-                </StackPanel>
+                                <Button Content="🔓 MỞ KHÓA KHO TÀI KHOẢN" Height="44" Margin="0,18,0,0"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Cursor="Hand" Click="BtnUnlock_Click"/>
+                            </StackPanel>
+
+                            <!-- Thông báo lỗi PIN -->
+                            <TextBlock x:Name="LblPinError" Text="" Foreground="{StaticResource VintageRuby}" FontSize="12"
+                                       HorizontalAlignment="Center" Margin="0,14,0,0" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Border>
 
@@ -225,14 +262,31 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <!-- Thông báo khi trống danh sách -->
-                    <Border x:Name="PanelEmptyAccounts" Background="{StaticResource PlateBevelGradient}"
-                            BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
-                            CornerRadius="9" Padding="32" Margin="0,20,0,0" Visibility="Collapsed">
+                    <!-- Thông báo khi trống danh sách: Hộc Két Sắt Mật Mã Cổ Điển -->
+                    <Border x:Name="PanelEmptyAccounts" Background="{StaticResource ChassisRackGradient}"
+                            BorderBrush="{StaticResource BrassBezelGradient}" BorderThickness="1.5"
+                            CornerRadius="12" Padding="40,32" Margin="20,30,20,0" Visibility="Collapsed" HorizontalAlignment="Center" MaxWidth="540">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="3" Opacity="0.75"/>
+                        </Border.Effect>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="🎮" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                            <TextBlock Text="Chưa có tài khoản nào được lưu." Foreground="{StaticResource TextSecondary}" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Bấm nút '+ Thêm Tài Khoản Mới' ở góc trên để lưu tài khoản Valorant, Steam, v.v." Foreground="{StaticResource TextMuted}" FontSize="12" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                            <!-- Ổ Khóa Đồng Thau Cổ Điển -->
+                            <Border Width="68" Height="68" CornerRadius="34" Margin="0,0,0,16" HorizontalAlignment="Center"
+                                    Background="{StaticResource PlateBevelGradient}"
+                                    BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="14" ShadowDepth="0" Opacity="0.6"/>
+                                </Border.Effect>
+                                <TextBlock Text="🗝️" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <TextBlock Text="KHO HỘC KÉT SẮT CHƯA CÓ DỮ LIỆU" Foreground="{StaticResource AccentGold}" FontSize="14.5" FontWeight="Bold" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                            <TextBlock Text="Các tài khoản game (Steam, Valorant, Riot...) được mã hóa AES-256 an toàn và tự xóa bộ nhớ tạm sau khi copy."
+                                       Foreground="{StaticResource TextSecondary}" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,20"/>
+
+                            <Button Content="➕ THÊM TÀI KHOẢN ĐẦU TIÊN VÀO KÉT" Click="BtnAddAccount_Click"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    Height="42" Padding="24,0" FontSize="12.5" Cursor="Hand" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

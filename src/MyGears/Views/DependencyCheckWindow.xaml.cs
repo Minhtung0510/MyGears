@@ -37,12 +37,21 @@ public partial class DependencyCheckWindow : Window
         await _vm.RunCheckCommand.ExecuteAsync(null);
     }
 
+    private int _opened = 0;
+
     private void OpenMainWindow()
     {
-        var mainWindow = new MainWindow();
-        Application.Current.MainWindow = mainWindow;
-        mainWindow.Show();
-        Close();
+        if (System.Threading.Interlocked.Exchange(ref _opened, 1) != 0) return;
+        _vm.AllDoneSuccessfully -= OpenMainWindow;
+
+        Dispatcher.Invoke(() =>
+        {
+            if (ContinueButton != null) ContinueButton.IsEnabled = false;
+            var mainWindow = new MainWindow();
+            Application.Current.MainWindow = mainWindow;
+            mainWindow.Show();
+            Close();
+        });
     }
 
     private void ContinueButton_Click(object sender, RoutedEventArgs e)

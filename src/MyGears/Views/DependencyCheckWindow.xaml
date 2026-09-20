@@ -8,6 +8,12 @@
         Background="{StaticResource BgDeep}"
         BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.2"
         WindowStyle="None" ResizeMode="NoResize"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        RenderOptions.BitmapScalingMode="HighQuality"
         FontFamily="{StaticResource AppFont}">
 
     <Window.DataContext>

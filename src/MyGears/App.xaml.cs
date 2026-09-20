@@ -6,6 +6,16 @@ namespace MyGears;
 
 public partial class App : Application
 {
+    private static System.Threading.Mutex? _singleInstanceMutex;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_RESTORE = 9;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -39,6 +49,32 @@ public partial class App : Application
         // 1) Chạy từ USB HOẶC có cờ --setup -> Mở màn hình Setup
         // 2) Chạy từ máy tính (hoặc có cờ --app / --dashboard) -> Mở trực tiếp Dashboard
         bool forceApp = e.Args.Contains("--app") || e.Args.Contains("--dashboard") || e.Args.Contains("--from-usb-deploy");
+
+        // Bảo vệ Single Instance: Tránh mở 2 cửa sổ ứng dụng song song
+        if (forceApp || (!UsbPathResolver.IsRunningFromUsb && !e.Args.Contains("--setup")))
+        {
+            _singleInstanceMutex = new System.Threading.Mutex(true, "Global\\MyGears_MainApp_SingleInstance_Mutex_2026", out bool createdNew);
+            if (!createdNew)
+            {
+                try
+                {
+                    var currentProc = System.Diagnostics.Process.GetCurrentProcess();
+                    foreach (var p in System.Diagnostics.Process.GetProcessesByName(currentProc.ProcessName))
+                    {
+                        if (p.Id != currentProc.Id && p.MainWindowHandle != IntPtr.Zero)
+                        {
+                            ShowWindowAsync(p.MainWindowHandle, SW_RESTORE);
+                            SetForegroundWindow(p.MainWindowHandle);
+                            break;
+                        }
+                    }
+                }
+                catch { }
+                Shutdown();
+                return;
+            }
+        }
+
         if ((UsbPathResolver.IsRunningFromUsb || e.Args.Contains("--setup")) && !forceApp)
         {
             var setupWindow = new SetupWindow();

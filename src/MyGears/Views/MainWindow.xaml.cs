@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using MyGears.Core;
 using MyGears.Modules;
@@ -19,6 +20,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _vm = (MainViewModel)DataContext;
+
+        // Khởi tạo hệ thống đồng hồ kim analog và buồng bánh răng cơ khí
+        InitializeAnalogInstruments();
 
         // Khôi phục vị trí/kích thước cửa sổ từ settings
         var ui = SettingsService.Current.Ui;
@@ -94,6 +98,101 @@ public partial class MainWindow : Window
 
     private double _currentGearAngle = 0;
 
+    // ──────────────────────────────────────────────
+    //  Analog Instrument & Gearbox Physics Engine
+    // ──────────────────────────────────────────────
+    private readonly DispatcherTimer _analogTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+    private double _needle1Angle = -38.0;
+    private double _needle1Target = -38.0;
+    private double _needle2Angle = -10.0;
+    private double _needle2Target = -10.0;
+    private double _needle3Angle = -20.0;
+    private double _needle3Target = -20.0;
+    private double _gear1Angle = 0.0;
+    private double _gearVelocity = 0.4;
+    private readonly Random _rnd = new Random();
+    private int _metricTickCount = 0;
+
+    private void InitializeAnalogInstruments()
+    {
+        // Cập nhật giá trị đo lường ban đầu
+        _vm.UpdateLiveTelemetry();
+        _needle1Target = -42.0 + (_vm.CurrentCpuLoad / 100.0) * 84.0;
+        _needle2Target = -42.0 + (_vm.CurrentRamLoad / 100.0) * 84.0;
+        double initPing = Math.Clamp(_vm.NetPingMs >= 0 ? _vm.NetPingMs : 30, 0, 100);
+        _needle3Target = -42.0 + (initPing / 100.0) * 84.0;
+        _needle1Angle = _needle1Target;
+        _needle2Angle = _needle2Target;
+        _needle3Angle = _needle3Target;
+
+        _analogTimer.Tick += (s, e) =>
+        {
+            _metricTickCount++;
+            // Mỗi 25 ticks (~1 giây) thì lấy mẫu CPU, RAM & Mạng thực tế
+            if (_metricTickCount >= 25)
+            {
+                _metricTickCount = 0;
+                _vm.UpdateLiveTelemetry();
+                _needle1Target = -42.0 + (_vm.CurrentCpuLoad / 100.0) * 84.0;
+                _needle2Target = -42.0 + (_vm.CurrentRamLoad / 100.0) * 84.0;
+                double pingVal = Math.Clamp(_vm.NetPingMs >= 0 ? _vm.NetPingMs : 30, 0, 100);
+                _needle3Target = -42.0 + (pingVal / 100.0) * 84.0;
+            }
+
+            // 1. Kim đo CPU Load (Needle 1): Dao động theo tải CPU thực tế kèm độ rung cơ khí
+            if (Math.Abs(_needle1Target - _needle1Angle) > 0.4)
+            {
+                _needle1Angle += (_needle1Target - _needle1Angle) * 0.18;
+            }
+            else
+            {
+                double jitter = (_rnd.NextDouble() - 0.5) * 1.5;
+                _needle1Angle = Math.Clamp(_needle1Target + jitter, -42.0, 42.0);
+            }
+            if (MeterNeedle1Rotate != null)
+                MeterNeedle1Rotate.Angle = _needle1Angle;
+
+            // 2. Kim đo RAM Usage (Needle 2): Chỉ dung lượng RAM thực tế đang dùng
+            if (Math.Abs(_needle2Target - _needle2Angle) > 0.4)
+            {
+                _needle2Angle += (_needle2Target - _needle2Angle) * 0.18;
+            }
+            else
+            {
+                double needle2Jitter = (_rnd.NextDouble() - 0.5) * 0.6;
+                _needle2Angle = Math.Clamp(_needle2Target + needle2Jitter, -42.0, 42.0);
+            }
+            if (MeterNeedle2Rotate != null)
+                MeterNeedle2Rotate.Angle = _needle2Angle;
+
+            // 3. Kim đo Network Ping (Needle 3): Chỉ độ trễ mạng Internet
+            if (Math.Abs(_needle3Target - _needle3Angle) > 0.4)
+            {
+                _needle3Angle += (_needle3Target - _needle3Angle) * 0.18;
+            }
+            else
+            {
+                double needle3Jitter = (_rnd.NextDouble() - 0.5) * 1.0;
+                _needle3Angle = Math.Clamp(_needle3Target + needle3Jitter, -42.0, 42.0);
+            }
+            if (MeterNeedle3Rotate != null)
+                MeterNeedle3Rotate.Angle = _needle3Angle;
+
+            // 4. Cụm 3 Bánh răng cơ khí ăn khớp: Quay đồng bộ ngược chiều
+            _gear1Angle = (_gear1Angle + _gearVelocity) % 360.0;
+            if (GearTrain1Rotate != null) GearTrain1Rotate.Angle = _gear1Angle;
+            if (GearTrain2Rotate != null) GearTrain2Rotate.Angle = -_gear1Angle * 1.37;
+            if (GearTrain3Rotate != null) GearTrain3Rotate.Angle = _gear1Angle * 1.86;
+
+            // Giảm tốc dần về mức quay nhàn rỗi (idle spin = 0.4)
+            if (_gearVelocity > 0.4)
+            {
+                _gearVelocity = Math.Max(0.4, _gearVelocity * 0.94);
+            }
+        };
+        _analogTimer.Start();
+    }
+
     private void AnimateContentTransition()
     {
         // 1. Gear rotation on tab switch (Bánh răng cơ khí xoay 90 độ khi đổi tab)
@@ -105,6 +204,10 @@ public partial class MainWindow : Window
             EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 }
         };
         TitlebarGearRotate?.BeginAnimation(RotateTransform.AngleProperty, gearAnim);
+
+        // Kích hoạt xoay nhanh cụm bánh răng & giật kim đo analog
+        _gearVelocity = 14.0;
+        _needle1Target = 24.0;
 
         // 2. Fade in
         var fadeAnim = new DoubleAnimation
@@ -146,7 +249,7 @@ public partial class MainWindow : Window
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
-            double targetY = index * 52;
+            double targetY = index * 56;
             var container = SidebarItemsControl.ItemContainerGenerator.ContainerFromIndex(index) as FrameworkElement;
             if (container != null)
             {
@@ -161,7 +264,7 @@ public partial class MainWindow : Window
                 }
                 catch
                 {
-                    targetY = index * 52;
+                    targetY = index * 56;
                 }
             }
 
@@ -174,22 +277,63 @@ public partial class MainWindow : Window
             };
             AccentBarTransform.BeginAnimation(TranslateTransform.YProperty, anim);
 
-            // Cập nhật style và màu sắc các mục sidebar
+            // Cập nhật trạng thái hiển thị của các kênh cơ học
             for (int i = 0; i < _vm.Modules.Count; i++)
             {
                 var itemContainer = SidebarItemsControl.ItemContainerGenerator.ContainerFromIndex(i);
                 if (itemContainer != null)
                 {
-                    var btn = FindVisualChild<Button>(itemContainer);
-                    if (btn != null)
+                    bool isActive = (i == index);
+                    var bdChannel = FindChildByName(itemContainer, "BdChannel") as Border;
+                    var jewelLamp = FindChildByName(itemContainer, "JewelLamp") as Border;
+                    var txtVi = FindChildByName(itemContainer, "TxtDisplayNameVi") as TextBlock;
+
+                    if (bdChannel != null)
                     {
-                        bool isActive = (i == index);
-                        btn.FontWeight = isActive ? FontWeights.SemiBold : FontWeights.Normal;
-                        btn.Foreground = isActive ? Brushes.White : (Brush)FindResource("TextSecondary");
+                        bdChannel.BorderBrush = isActive ? (Brush)FindResource("AccentBrass") : (Brush)FindResource("BorderCard");
+                    }
+                    if (jewelLamp != null)
+                    {
+                        if (isActive)
+                        {
+                            jewelLamp.Background = (Brush)FindResource("AccentAmber");
+                            jewelLamp.BorderBrush = (Brush)FindResource("AccentGold");
+                            jewelLamp.Effect = new DropShadowEffect
+                            {
+                                Color = (Color)FindResource("AccentAmberColor"),
+                                BlurRadius = 10,
+                                ShadowDepth = 0,
+                                Opacity = 1.0
+                            };
+                        }
+                        else
+                        {
+                            jewelLamp.Background = new SolidColorBrush(Color.FromRgb(0x2B, 0x1A, 0x0D));
+                            jewelLamp.BorderBrush = new SolidColorBrush(Color.FromRgb(0x55, 0x3A, 0x18));
+                            jewelLamp.Effect = null;
+                        }
+                    }
+                    if (txtVi != null)
+                    {
+                        txtVi.Foreground = isActive ? Brushes.White : (Brush)FindResource("TextSecondary");
+                        txtVi.FontWeight = isActive ? FontWeights.Bold : FontWeights.SemiBold;
                     }
                 }
             }
         });
+    }
+
+    private static FrameworkElement? FindChildByName(DependencyObject parent, string name)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement fe && fe.Name == name)
+                return fe;
+            var sub = FindChildByName(child, name);
+            if (sub != null) return sub;
+        }
+        return null;
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject

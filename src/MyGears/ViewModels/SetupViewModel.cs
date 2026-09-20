@@ -194,9 +194,17 @@ public partial class SetupViewModel : ObservableObject
         if (success)
         {
             InstallProgress = 1.0;
-            ProgressStatusText = "Hoàn tất 100%!";
+            ProgressStatusText = "🚀 Đang mở ứng dụng MyGears trên máy tính...";
             IsCompleted = true;
-            CompletedMessage = "🎉 Đã cài đặt thành công MyGears vào máy tính!\n\n👉 Bạn hãy RÚT USB RA và cắm Chuột / Bàn phím vào máy để bắt đầu chơi game nhé!";
+            CompletedMessage = "🎉 Đã cài đặt thành công MyGears vào máy tính!\n\n👉 Ứng dụng đang mở trên máy tính, đang đóng bộ cài USB...";
+
+            // Tự động đóng bộ cài USB để chỉ giữ lại duy nhất 1 cửa sổ ứng dụng chính trên máy tính
+            await Task.Delay(900);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                RequestClose?.Invoke();
+                Application.Current.Shutdown();
+            });
         }
         else
         {

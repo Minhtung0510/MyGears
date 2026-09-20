@@ -13,6 +13,15 @@
 
     <Platforms>AnyCPU</Platforms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Tối ưu hóa xuất bản: Nén Single-File và loại bỏ rác build -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,6 +8,12 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None" AllowsTransparency="True"
         Background="Transparent"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        RenderOptions.BitmapScalingMode="HighQuality"
         FontFamily="{StaticResource AppFont}">
 
     <Window.DataContext>
@@ -215,30 +221,39 @@
                 <Grid>
                     <!-- Mode 1: Sẵn sàng cài đặt (Khi chưa bấm bắt đầu và chưa xong) -->
                     <StackPanel Visibility="{Binding IsInstalling, Converter={StaticResource InvertBoolToVisConverter}}">
-                        <Grid Margin="0,0,0,12">
-                            <!-- Quick action buttons -->
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Hàng 1: Các nút chọn nhanh (Trái) & Nút chạy trực tiếp từ USB (Phải) -->
+                        <Grid Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <Button Content="Chỉ cài mục mới" Command="{Binding SelectOnlyNewCommand}"
-                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5" Margin="0,0,8,0"
-                                        FontSize="11.5"/>
+                                        Style="{StaticResource ToolbarButtonStyle}" Padding="11,5" Margin="0,0,6,0"
+                                        FontSize="11"/>
                                 <Button Content="Chọn tất cả" Command="{Binding SelectAllCommand}"
-                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5" Margin="0,0,8,0"
-                                        FontSize="11.5"/>
+                                        Style="{StaticResource ToolbarButtonStyle}" Padding="11,5" Margin="0,0,6,0"
+                                        FontSize="11"/>
                                 <Button Content="Bỏ chọn driver tùy chọn" Command="{Binding DeselectOptionalCommand}"
-                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5" Margin="0,0,8,0"
-                                        FontSize="11.5"/>
-                                <Button Content="⚡ Mở trực tiếp MyGears" Command="{Binding LaunchDirectlyCommand}"
-                                        Style="{StaticResource ToolbarButtonStyle}" Padding="12,5"
-                                        Foreground="{StaticResource AccentGold}" FontSize="11.5" ToolTip="Mở MyGears ngay trên USB mà không cần sao chép vào máy tính"/>
+                                        Style="{StaticResource ToolbarButtonStyle}" Padding="11,5"
+                                        FontSize="11"/>
                             </StackPanel>
 
-                            <!-- Summary text -->
-                            <TextBlock Text="{Binding SelectedSummaryText}"
-                                       Foreground="{StaticResource AccentGold}" FontWeight="Bold" FontSize="12.5"
-                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <!-- Nút mở trực tiếp không cài đặt (Bên phải riêng biệt) -->
+                            <Button Content="⚡ Chạy trực tiếp từ USB" Command="{Binding LaunchDirectlyCommand}"
+                                    Style="{StaticResource ToolbarButtonStyle}" Padding="12,5"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Foreground="{StaticResource AccentGold}" FontSize="11"
+                                    ToolTip="Mở MyGears ngay trên USB mà không cần sao chép vào máy tính"/>
                         </Grid>
 
-                        <!-- Big CTA Button -->
+                        <!-- Hàng 2: Thanh thông tin tổng hợp dung lượng và số lượng (Riêng biệt, không bao giờ bị đè) -->
+                        <Border Background="{StaticResource PlateBevelGradient}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                                CornerRadius="6" Padding="12,6" Margin="0,0,0,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="📦 " FontSize="11" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding SelectedSummaryText}"
+                                           Foreground="{StaticResource AccentGold}" FontWeight="SemiBold" FontSize="11.5"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hàng 3: Nút Bấm Lớn BẮT ĐẦU CÀI ĐẶT -->
                         <Button Content="🚀 BẮT ĐẦU CÀI ĐẶT (ĐỂ RÚT USB)"
                                 Command="{Binding StartInstallCommand}"
                                 Style="{StaticResource AccentButtonStyle}"
