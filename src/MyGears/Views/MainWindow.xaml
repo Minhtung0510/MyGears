@@ -2,14 +2,14 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:MyGears.ViewModels"
-        Title="MyGears"
+        Title="MyGears — Vintage Gear Console"
         Width="1360" Height="860"
         MinWidth="960" MinHeight="640"
         WindowStartupLocation="CenterScreen"
-        Background="#0D0D0D"
-        BorderBrush="#E8321A" BorderThickness="1"
+        Background="{StaticResource BgDeep}"
+        BorderBrush="{StaticResource AccentBrass}" BorderThickness="1"
         WindowStyle="None"
-        FontFamily="Segoe UI">
+        FontFamily="{StaticResource AppFont}">
 
     <Window.DataContext>
         <vm:MainViewModel/>
@@ -17,38 +17,47 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>   <!-- Sidebar -->
+            <ColumnDefinition Width="210"/>   <!-- Sidebar -->
             <ColumnDefinition Width="*"/>     <!-- Content -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="48"/>      <!-- Titlebar -->
+            <RowDefinition Height="50"/>      <!-- Titlebar -->
             <RowDefinition Height="*"/>       <!-- Main area -->
         </Grid.RowDefinitions>
 
         <!-- ══════════════════════════════════════════
-             TITLEBAR (spans both columns)
+             TITLEBAR (Vintage Brass & Gunmetal)
              ══════════════════════════════════════════ -->
         <Border Grid.Row="0" Grid.ColumnSpan="2"
-                Background="#0A0A0A" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1"
+                Background="{StaticResource BgSidebar}"
+                BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0">
-                    <!-- Logo with accent glow -->
-                    <Border Width="28" Height="28" CornerRadius="6" Margin="0,0,10,0">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#E8321A" Offset="0"/>
-                                <GradientStop Color="#FF6B2B" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <TextBlock Text="⚙" FontSize="14" Foreground="White"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- Logo with Interlocking Vintage Brass Gear -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                    <Border Width="30" Height="30" CornerRadius="7" Margin="0,0,10,0"
+                            Background="{StaticResource PlateBevelGradient}"
+                            BorderBrush="{StaticResource AccentBrass}" BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/>
+                        </Border.Effect>
+                        <Grid>
+                            <TextBlock x:Name="TitlebarGear" Text="⚙" FontSize="16" Foreground="{StaticResource AccentGold}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       RenderTransformOrigin="0.5,0.5">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform x:Name="TitlebarGearRotate" Angle="0"/>
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Grid>
                     </Border>
                     <TextBlock Text="MyGears" FontSize="15" FontWeight="Bold"
-                               Foreground="White" VerticalAlignment="Center"/>
-                    <TextBlock Text=" — Portable Gear Manager"
-                               FontSize="11" Foreground="#555" VerticalAlignment="Center"
-                               Margin="6,0,0,0"/>
+                               Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                    <Border Background="#262118" CornerRadius="3" Padding="5,2" Margin="8,0,0,0"
+                            BorderBrush="{StaticResource AccentBrass}" BorderThickness="0.8">
+                        <TextBlock Text="VINTAGE CONSOLE" FontSize="9.5" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentGold}" VerticalAlignment="Center"/>
+                    </Border>
                 </StackPanel>
 
                 <!-- Right: USB info + Deployment controls + window controls -->
@@ -71,24 +80,35 @@
                         </Button.Style>
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#E8321A" CornerRadius="5" Padding="10,5">
+                                <Border x:Name="BdDeploy" Background="{StaticResource AccentGradient}" CornerRadius="6" Padding="12,6"
+                                        BorderBrush="{StaticResource AccentGold}" BorderThickness="1">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="10" ShadowDepth="1" Opacity="0.6"/>
+                                    </Border.Effect>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="⚡" FontSize="12" Margin="0,0,5,0" Foreground="White"/>
-                                        <TextBlock Text="Cài vào máy (Rút USB)" FontWeight="SemiBold" FontSize="11" Foreground="White"/>
+                                        <TextBlock Text="⚡" FontSize="12" Margin="0,0,6,0" Foreground="#12100C"/>
+                                        <TextBlock Text="Cài vào máy (Rút USB)" FontWeight="Bold" FontSize="11.5" Foreground="#12100C"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Opacity" Value="0.88"/>
+                                        <Setter TargetName="BdDeploy" Property="Opacity" Value="0.9"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="BdDeploy" Property="RenderTransform">
+                                            <Setter.Value>
+                                                <TranslateTransform Y="1.5"/>
+                                            </Setter.Value>
+                                        </Setter>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
 
-                    <!-- Khi đang chạy từ máy: Huy hiệu an toàn rút USB -->
-                    <Border Background="#102A18" BorderBrush="#2ECC71" BorderThickness="1"
-                            CornerRadius="5" Padding="8,4" Margin="0,0,8,0">
+                    <!-- Khi đang chạy từ máy: Huy hiệu ngọc an toàn rút USB -->
+                    <Border Background="#10261C" BorderBrush="{StaticResource VintageEmerald}" BorderThickness="1"
+                            CornerRadius="6" Padding="9,5" Margin="0,0,8,0">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -100,14 +120,16 @@
                             </Style>
                         </Border.Style>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="💻 Đang chạy trên máy tính" Foreground="#2ECC71" FontSize="11" FontWeight="Bold"/>
-                            <TextBlock Text=" • Đã an toàn rút USB" Foreground="#A9DFBF" FontSize="11" Margin="4,0,0,0"/>
+                            <TextBlock Text="●" Foreground="{StaticResource VintageEmerald}" FontSize="10" Margin="0,0,5,0"
+                                       Style="{StaticResource FilamentBreathingStyle}"/>
+                            <TextBlock Text="Máy tính" Foreground="{StaticResource VintageEmerald}" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock Text=" • An toàn rút USB" Foreground="#A7F3D0" FontSize="11" Margin="4,0,0,0"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Khi đang chạy từ máy: Nút lưu cấu hình ngược về USB -->
                     <Button Command="{Binding SyncToUsbCommand}"
-                            Margin="0,0,10,0" Cursor="Hand"
+                            Margin="0,0,8,0" Cursor="Hand"
                             ToolTip="Cắm lại USB và bấm nút này để lưu cấu hình mới nhất trước khi về">
                         <Button.Style>
                             <Style TargetType="Button">
@@ -124,15 +146,17 @@
                         </Button.Style>
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#1C1C1C" BorderBrush="#333" BorderThickness="1" CornerRadius="5" Padding="8,4">
+                                <Border x:Name="BdSync" Background="{StaticResource PlateBevelGradient}"
+                                        BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="6" Padding="9,5">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock x:Name="SyncIcon" Text="💾" FontSize="11" Margin="0,0,4,0"/>
-                                        <TextBlock x:Name="SyncText" Text="Lưu về USB" FontSize="11" Foreground="#DDD"/>
+                                        <TextBlock x:Name="SyncIcon" Text="💾" FontSize="11" Margin="0,0,5,0"/>
+                                        <TextBlock x:Name="SyncText" Text="Lưu về USB" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#2A2A2A"/>
+                                        <Setter TargetName="BdSync" Property="BorderBrush" Value="{StaticResource AccentBrass}"/>
+                                        <Setter TargetName="SyncText" Property="Foreground" Value="{StaticResource TextPrimary}"/>
                                     </Trigger>
                                     <DataTrigger Binding="{Binding IsSyncingToUsb}" Value="True">
                                         <Setter TargetName="SyncIcon" Property="Text" Value="⚙"/>
@@ -163,15 +187,16 @@
                         </Button.Style>
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#2A1111" BorderBrush="#C0392B" BorderThickness="1" CornerRadius="5" Padding="8,4">
+                                <Border x:Name="BdDestruct" Background="#261214" BorderBrush="{StaticResource VintageRuby}"
+                                        BorderThickness="1" CornerRadius="6" Padding="9,5">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock x:Name="SelfDestructIcon" Text="💣" FontSize="11" Margin="0,0,4,0"/>
-                                        <TextBlock x:Name="SelfDestructText" Text="Tự Hủy Dọn Máy" FontSize="11" FontWeight="SemiBold" Foreground="#E74C3C"/>
+                                        <TextBlock x:Name="SelfDestructIcon" Text="💣" FontSize="11" Margin="0,0,5,0"/>
+                                        <TextBlock x:Name="SelfDestructText" Text="Tự Hủy Dọn Máy" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource VintageRuby}"/>
                                     </StackPanel>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#C0392B"/>
+                                        <Setter TargetName="BdDestruct" Property="Background" Value="#3D181C"/>
                                     </Trigger>
                                     <DataTrigger Binding="{Binding IsSelfDestructing}" Value="True">
                                         <Setter TargetName="SelfDestructIcon" Property="Text" Value="⚙"/>
@@ -183,34 +208,33 @@
                         </Button.Template>
                     </Button>
 
-                    <Border Background="#1A1A1A" CornerRadius="4" Padding="8,4" Margin="0,0,10,0">
+                    <!-- USB Drive indicator badge -->
+                    <Border Background="{StaticResource PlateBevelGradient}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                            CornerRadius="5" Padding="8,4" Margin="0,0,10,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔌 Ổ: " Foreground="#555" FontSize="11"/>
+                            <TextBlock Text="🔌 Ổ: " Foreground="{StaticResource TextMuted}" FontSize="11"/>
                             <TextBlock Text="{Binding UsbRootDisplay}"
-                                       Foreground="#888" FontSize="11" FontFamily="Consolas"/>
+                                       Foreground="{StaticResource AccentGold}" FontSize="11" FontFamily="{StaticResource MonoFont}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Minimize -->
-                    <Button Content="—" Width="40" Height="48"
+                    <Button Content="—" Width="40" Height="50"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#888" FontSize="12" Cursor="Hand"
+                            Foreground="{StaticResource TextSecondary}" FontSize="12" Cursor="Hand"
                             Click="MinimizeButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Foreground" Value="#888"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" Width="40" Height="48">
+                                            <Border Background="{TemplateBinding Background}" Width="40" Height="50">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#252525"/>
-                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="Background" Value="#222834"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -221,25 +245,22 @@
                     </Button>
 
                     <!-- Maximize -->
-                    <Button Content="□" Width="40" Height="48"
+                    <Button Content="□" Width="40" Height="50"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#888" FontSize="12" Cursor="Hand"
+                            Foreground="{StaticResource TextSecondary}" FontSize="12" Cursor="Hand"
                             Click="MaximizeButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Foreground" Value="#888"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" Width="40" Height="48">
+                                            <Border Background="{TemplateBinding Background}" Width="40" Height="50">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#252525"/>
-                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="Background" Value="#222834"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -250,24 +271,21 @@
                     </Button>
 
                     <!-- Close -->
-                    <Button Content="✕" Width="40" Height="48"
+                    <Button Content="✕" Width="40" Height="50"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#888" FontSize="13" Cursor="Hand"
+                            Foreground="{StaticResource TextSecondary}" FontSize="13" Cursor="Hand"
                             Click="CloseButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Foreground" Value="#888"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" Width="40" Height="48">
+                                            <Border Background="{TemplateBinding Background}" Width="40" Height="50">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#C0392B"/>
+                                                    <Setter Property="Background" Value="{StaticResource VintageRuby}"/>
                                                     <Setter Property="Foreground" Value="White"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
@@ -282,22 +300,23 @@
         </Border>
 
         <!-- ══════════════════════════════════════════
-             SIDEBAR
+             SIDEBAR (Machined Gunmetal Plate)
              ══════════════════════════════════════════ -->
         <Border Grid.Row="1" Grid.Column="0"
-                Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,1,0">
+                Background="{StaticResource BgSidebar}"
+                BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,1,0">
             <Grid x:Name="SidebarGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Thanh chỉ báo trượt mượt (Sliding Accent Bar) -->
-                <Canvas Grid.Row="0" Width="3.5" HorizontalAlignment="Left" Margin="0,16,0,0" IsHitTestVisible="False">
-                    <Border x:Name="SidebarAccentIndicator" Width="3.5" Height="44"
+                <!-- Thanh chỉ báo trượt mượt kim loại đồng (Sliding Brass Indicator) -->
+                <Canvas Grid.Row="0" Width="4" HorizontalAlignment="Left" Margin="0,16,0,0" IsHitTestVisible="False">
+                    <Border x:Name="SidebarAccentIndicator" Width="4" Height="46"
                             CornerRadius="0,3,3,0" Background="{StaticResource AccentGradient}">
                         <Border.Effect>
-                            <DropShadowEffect Color="#FF4D1A" BlurRadius="8" ShadowDepth="0" Opacity="0.85"/>
+                            <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="10" ShadowDepth="0" Opacity="0.85"/>
                         </Border.Effect>
                         <Border.RenderTransform>
                             <TranslateTransform x:Name="AccentBarTransform" Y="0"/>
@@ -327,13 +346,13 @@
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Icon}" FontSize="18"
-                                               VerticalAlignment="Center" Width="28"/>
+                                               VerticalAlignment="Center" Width="30" Margin="2,0,0,0"/>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding DisplayNameVi}"
-                                                   FontSize="13"/>
+                                                   FontSize="13" FontWeight="SemiBold"/>
                                         <TextBlock Text="{Binding DisplayNameEn}"
-                                                   FontSize="10" Foreground="#666"
-                                                   Margin="0,1,0,0"/>
+                                                   FontSize="10" Foreground="{StaticResource TextMuted}"
+                                                   Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Button>
@@ -341,17 +360,25 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <!-- Bottom: version info -->
-                <StackPanel Grid.Row="1" Margin="16,8,16,16">
-                    <Separator Background="{StaticResource BorderSubtle}" Margin="0,0,0,10"/>
-                    <TextBlock Text="MyGears v1.0" Foreground="#444" FontSize="10"/>
-                    <TextBlock Text="Portable • .NET 8 • WPF" Foreground="#333" FontSize="10"/>
-                </StackPanel>
+                <!-- Bottom: Vintage Console Badge -->
+                <Border Grid.Row="1" Background="{StaticResource PlateBevelGradient}"
+                        BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1"
+                        CornerRadius="7" Margin="12,8,12,14" Padding="12,10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="⚙" FontSize="12" Foreground="{StaticResource AccentGold}" Margin="0,0,6,0"
+                                       Style="{StaticResource SlowGearSpinStyle}"/>
+                            <TextBlock Text="MyGears Console" Foreground="{StaticResource TextPrimary}" FontSize="11" FontWeight="Bold"/>
+                        </StackPanel>
+                        <TextBlock Text="Mechanical Engine • v1.0" Foreground="{StaticResource AccentBrass}" FontSize="9.5"/>
+                        <TextBlock Text="Portable • .NET 8 • WPF" Foreground="{StaticResource TextMuted}" FontSize="9" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
         <!-- ══════════════════════════════════════════
-             CONTENT AREA
+             CONTENT AREA (With Ambient Gear Watermark)
              ══════════════════════════════════════════ -->
         <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource BgContent}">
             <Grid>
@@ -360,21 +387,27 @@
                     <RowDefinition Height="*"/>    <!-- Content host -->
                 </Grid.RowDefinitions>
 
+                <!-- Decorative Subtle Background Gear Watermark -->
+                <Canvas Grid.RowSpan="2" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-60,-60" Opacity="0.028">
+                    <TextBlock Text="⚙" FontSize="360" Foreground="{StaticResource AccentBrass}"
+                               Style="{StaticResource SlowGearSpinStyle}"/>
+                </Canvas>
+
                 <!-- Banner thông báo khi đã chạy trên máy tính -->
                 <Border x:Name="BannerDeployedNotice" Grid.Row="0"
-                        Background="#102A18" BorderBrush="#2ECC71" BorderThickness="0,0,0,1"
-                        Padding="14,10" Visibility="Collapsed">
+                        Background="#10261C" BorderBrush="{StaticResource VintageEmerald}" BorderThickness="0,0,0,1"
+                        Padding="16,10" Visibility="Collapsed">
                     <Border.RenderTransform>
                         <TranslateTransform x:Name="BannerTransform" Y="0"/>
                     </Border.RenderTransform>
                     <Grid>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="🎉" FontSize="15" Margin="0,0,8,0"/>
-                            <TextBlock Text="MyGears đã chạy hoàn toàn trên máy tính! " Foreground="#2ECC71" FontWeight="Bold" FontSize="13"/>
-                            <TextBlock Text="Bây giờ bạn hãy rút USB ra để cắm Chuột và Bàn phím vào nhé." Foreground="#D5F5E3" FontSize="13"/>
+                            <TextBlock Text="✨" FontSize="15" Margin="0,0,8,0"/>
+                            <TextBlock Text="MyGears đã chạy hoàn toàn trên máy tính! " Foreground="{StaticResource VintageEmerald}" FontWeight="Bold" FontSize="13"/>
+                            <TextBlock Text="Bây giờ bạn hãy rút USB ra để cắm Chuột và Bàn phím vào nhé." Foreground="#D1FAE5" FontSize="13"/>
                         </StackPanel>
                         <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Background="Transparent" BorderThickness="0" Foreground="#AAA"
+                                Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSecondary}"
                                 FontSize="12" Cursor="Hand" Click="DismissBanner_Click" Padding="6,2"/>
                     </Grid>
                 </Border>
@@ -383,9 +416,12 @@
                 <ContentControl x:Name="ContentHost" Grid.Row="1"
                                 HorizontalContentAlignment="Stretch"
                                 VerticalContentAlignment="Stretch"
-                                RenderTransformOrigin="0.5,0">
+                                RenderTransformOrigin="0.5,0.5">
                     <ContentControl.RenderTransform>
-                        <TranslateTransform x:Name="ContentTransform" Y="0"/>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="ContentScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="ContentTransform" Y="0"/>
+                        </TransformGroup>
                     </ContentControl.RenderTransform>
                 </ContentControl>
             </Grid>
@@ -395,7 +431,7 @@
              DEPLOYMENT LOADING OVERLAY
              ══════════════════════════════════════════ -->
         <Border Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2"
-                Background="#EE0A0A0A" Panel.ZIndex="999">
+                Background="#F20E1013" Panel.ZIndex="999">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -407,18 +443,23 @@
                 </Style>
             </Border.Style>
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Width="64" Height="64" Margin="0,0,0,16" HorizontalAlignment="Center">
+                <Border Width="72" Height="72" Margin="0,0,0,20" HorizontalAlignment="Center"
+                        Background="{StaticResource PlateBevelGradient}" CornerRadius="36"
+                        BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5">
+                    <Border.Effect>
+                        <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="20" ShadowDepth="0" Opacity="0.7"/>
+                    </Border.Effect>
                     <Grid>
-                        <TextBlock Text="⚙" FontSize="46" Foreground="{StaticResource AccentRed}"
+                        <TextBlock Text="⚙" FontSize="46" Foreground="{StaticResource AccentGold}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource SpinningStyle}"/>
-                        <TextBlock Text="⚡" FontSize="22" Foreground="White"
+                        <TextBlock Text="⚡" FontSize="20" Foreground="{StaticResource TextPrimary}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
-                <TextBlock Text="Đang cài đặt MyGears vào máy tính…" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-                <TextBlock Text="{Binding DeployProgressText}" FontSize="14" Foreground="#2ECC71" HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                <TextBlock Text="Quá trình này chỉ mất ~1 giây. Sau khi hoàn tất bạn có thể rút USB ra ngay!" FontSize="12" Foreground="#888" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                <TextBlock Text="Đang cài đặt MyGears vào máy tính…" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding DeployProgressText}" FontSize="14" Foreground="{StaticResource AccentGold}" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                <TextBlock Text="Quá trình này chỉ mất ~1 giây. Sau khi hoàn tất bạn có thể rút USB ra ngay!" FontSize="12" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,14,0,0"/>
             </StackPanel>
         </Border>
     </Grid>

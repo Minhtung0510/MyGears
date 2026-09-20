@@ -2,13 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:MyGears.ViewModels"
-        Title="MyGears — Kiểm tra hệ thống / System Check"
-        Width="700" Height="520"
+        Title="MyGears — Kiểm tra hệ thống / Diagnostic Console"
+        Width="720" Height="530"
         WindowStartupLocation="CenterScreen"
-        Background="#0D0D0D"
-        BorderBrush="#E8321A" BorderThickness="1"
+        Background="{StaticResource BgDeep}"
+        BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.2"
         WindowStyle="None" ResizeMode="NoResize"
-        FontFamily="Segoe UI">
+        FontFamily="{StaticResource AppFont}">
 
     <Window.DataContext>
         <vm:DependencyCheckViewModel/>
@@ -17,44 +17,44 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="48"/>   <!-- Titlebar -->
-            <RowDefinition Height="100"/>  <!-- Header -->
+            <RowDefinition Height="104"/>  <!-- Header -->
             <RowDefinition Height="*"/>    <!-- Dep list -->
-            <RowDefinition Height="120"/>  <!-- Log -->
-            <RowDefinition Height="60"/>   <!-- Footer -->
+            <RowDefinition Height="125"/>  <!-- Log -->
+            <RowDefinition Height="64"/>   <!-- Footer -->
         </Grid.RowDefinitions>
 
         <!-- ── Custom Title Bar ───────────────────────── -->
-        <Border Grid.Row="0" Background="#141414"
+        <Border Grid.Row="0" Background="{StaticResource BgSidebar}"
+                BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid Margin="16,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="⚙" FontSize="18" Foreground="#E8321A" VerticalAlignment="Center"/>
-                    <TextBlock Text=" MyGears" FontSize="14" FontWeight="SemiBold"
-                               Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                    <TextBlock Text=" — Kiểm tra hệ thống / System Check"
-                               FontSize="12" Foreground="#888" VerticalAlignment="Center"/>
+                    <TextBlock Text="⚙" FontSize="18" Foreground="{StaticResource AccentGold}" VerticalAlignment="Center"
+                               Style="{StaticResource SlowGearSpinStyle}"/>
+                    <TextBlock Text=" MyGears" FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    <Border Background="#262118" CornerRadius="3" Padding="5,2" Margin="8,0,0,0"
+                            BorderBrush="{StaticResource AccentBrass}" BorderThickness="0.8">
+                        <TextBlock Text="DIAGNOSTIC CONSOLE" FontSize="9.5" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentGold}" VerticalAlignment="Center"/>
+                    </Border>
                 </StackPanel>
                 <Button Content="✕" HorizontalAlignment="Right"
-                        Width="40" Height="40"
+                        Width="40" Height="48"
                         Background="Transparent" BorderThickness="0"
-                        Foreground="#888" FontSize="14" Cursor="Hand"
+                        Foreground="{StaticResource TextSecondary}" FontSize="13" Cursor="Hand"
                         Click="CloseButton_Click">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Foreground" Value="#888"/>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}"
-                                                Width="40" Height="40">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
+                                        <Border Background="{TemplateBinding Background}" Width="40" Height="48">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="#C0392B"/>
+                                                <Setter Property="Background" Value="{StaticResource VintageRuby}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
@@ -67,37 +67,34 @@
             </Grid>
         </Border>
 
-        <!-- ── Header: Logo + Status ─────────────────── -->
-        <Border Grid.Row="1" Background="#141414" BorderBrush="#1F1F1F" BorderThickness="0,0,0,1">
+        <!-- ── Header: Status + Progress ──────────────── -->
+        <Border Grid.Row="1" Background="{StaticResource PlateBevelGradient}" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1">
             <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Logo accent line -->
-                <Border Grid.Column="0" Width="4" Height="60" CornerRadius="2"
-                        Margin="0,0,16,0">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#E8321A" Offset="0"/>
-                            <GradientStop Color="#FF6B2B" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
+                <!-- Brass accent line with amber glow -->
+                <Border Grid.Column="0" Width="4" Height="64" CornerRadius="2"
+                        Background="{StaticResource AccentGradient}" Margin="0,0,18,0">
+                    <Border.Effect>
+                        <DropShadowEffect Color="{StaticResource AccentAmberColor}" BlurRadius="8" ShadowDepth="0" Opacity="0.7"/>
+                    </Border.Effect>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{Binding OverallStatus}" FontSize="15"
-                               FontWeight="SemiBold" Foreground="White"/>
+                               FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <TextBlock Text="USB Root: " Foreground="#666" FontSize="11"/>
-                        <TextBlock x:Name="UsbRootText" Foreground="#888" FontSize="11"
-                                   FontFamily="Consolas"/>
+                        <TextBlock Text="USB Root: " Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                        <TextBlock x:Name="UsbRootText" Foreground="{StaticResource AccentGold}" FontSize="11"
+                                   FontFamily="{StaticResource MonoFont}"/>
                     </StackPanel>
 
                     <!-- Progress bar -->
-                    <Grid Margin="0,8,24,0">
-                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="6"/>
+                    <Grid Margin="0,10,24,0">
+                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="8"/>
                     </Grid>
                 </StackPanel>
             </Grid>
@@ -105,26 +102,26 @@
 
         <!-- ── Dependency List ───────────────────────── -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                      Background="#0D0D0D" Margin="0,4,0,0">
-            <ItemsControl ItemsSource="{Binding Items}" Margin="16,8">
+                      Background="{StaticResource BgContent}" Margin="0,2,0,0">
+            <ItemsControl ItemsSource="{Binding Items}" Margin="16,10">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#141414" CornerRadius="6" Margin="0,3"
-                                Padding="14,10" BorderBrush="#1F1F1F" BorderThickness="1">
+                        <Border Background="{StaticResource PlateBevelGradient}" CornerRadius="7" Margin="0,4"
+                                Padding="16,12" BorderBrush="{StaticResource BorderCard}" BorderThickness="1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="30"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="130"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" Text="{Binding StatusIcon}"
                                            FontSize="16" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
-                                           Foreground="#DEDEDE" FontSize="13"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                           Foreground="{StaticResource TextPrimary}" FontSize="13" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 <TextBlock Grid.Column="2" Text="{Binding StatusText}"
-                                           Foreground="#888" FontSize="11"
+                                           Foreground="{StaticResource AccentGold}" FontSize="11.5"
                                            HorizontalAlignment="Right"
                                            VerticalAlignment="Center"/>
                             </Grid>
@@ -134,19 +131,19 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- ── Log Panel ─────────────────────────────── -->
-        <Border Grid.Row="3" Background="#0A0A0A" BorderBrush="#1F1F1F" BorderThickness="0,1,0,1">
+        <!-- ── Log Panel (Vintage CRT Phosphor Console) ─ -->
+        <Border Grid.Row="3" Background="#0A0C10" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,1,0,1">
             <Grid>
-                <TextBlock Text="LOG" Foreground="#555" FontSize="10" FontFamily="Consolas"
-                           Margin="12,6,0,0" VerticalAlignment="Top"/>
-                <ScrollViewer x:Name="LogScrollViewer" Margin="12,22,12,8"
+                <TextBlock Text="DIAGNOSTIC LOG" Foreground="{StaticResource AccentBrass}" FontSize="9.5" FontWeight="Bold"
+                           FontFamily="{StaticResource MonoFont}" Margin="14,6,0,0" VerticalAlignment="Top"/>
+                <ScrollViewer x:Name="LogScrollViewer" Margin="14,24,14,8"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding Logs}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11"
-                                           Foreground="#667" TextWrapping="Wrap" Margin="0,1"/>
+                                <TextBlock Text="{Binding}" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                           Foreground="#A8A29E" TextWrapping="Wrap" Margin="0,1.5"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -155,14 +152,18 @@
         </Border>
 
         <!-- ── Footer ────────────────────────────────── -->
-        <Border Grid.Row="4" Background="#141414">
+        <Border Grid.Row="4" Background="{StaticResource BgSidebar}">
             <Grid Margin="16,0">
                 <TextBlock Text="Chạy với quyền Administrator để cài dependency / Run as Admin for silent install"
-                           Foreground="#555" FontSize="11" VerticalAlignment="Center"/>
-                <Button Content="Tiếp tục → / Continue →"
+                           Foreground="{StaticResource TextMuted}" FontSize="11"
+                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                <!-- Nút Tiếp tục -->
+                <Button x:Name="ContinueButton"
+                        Content="Tiếp tục → / Continue →"
                         Style="{StaticResource AccentButtonStyle}"
-                        HorizontalAlignment="Right" Margin="0,8"
-                        IsEnabled="{Binding IsComplete}"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Height="38" Padding="18,0" FontSize="12.5"
                         Click="ContinueButton_Click"/>
             </Grid>
         </Border>

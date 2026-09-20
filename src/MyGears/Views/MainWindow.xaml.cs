@@ -92,26 +92,51 @@ public partial class MainWindow : Window
         AnimateContentTransition();
     }
 
+    private double _currentGearAngle = 0;
+
     private void AnimateContentTransition()
     {
+        // 1. Gear rotation on tab switch (Bánh răng cơ khí xoay 90 độ khi đổi tab)
+        _currentGearAngle += 90.0;
+        var gearAnim = new DoubleAnimation
+        {
+            To = _currentGearAngle,
+            Duration = TimeSpan.FromMilliseconds(400),
+            EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 }
+        };
+        TitlebarGearRotate?.BeginAnimation(RotateTransform.AngleProperty, gearAnim);
+
+        // 2. Fade in
         var fadeAnim = new DoubleAnimation
         {
             From = 0.0,
             To = 1.0,
-            Duration = TimeSpan.FromMilliseconds(200),
+            Duration = TimeSpan.FromMilliseconds(240),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
 
+        // 3. Slide in
         var slideAnim = new DoubleAnimation
         {
-            From = 10.0,
+            From = 14.0,
             To = 0.0,
-            Duration = TimeSpan.FromMilliseconds(200),
+            Duration = TimeSpan.FromMilliseconds(240),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+
+        // 4. Subtle scale pop
+        var scaleAnim = new DoubleAnimation
+        {
+            From = 0.985,
+            To = 1.0,
+            Duration = TimeSpan.FromMilliseconds(240),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
         };
 
         ContentHost.BeginAnimation(OpacityProperty, fadeAnim);
-        ContentTransform.BeginAnimation(TranslateTransform.YProperty, slideAnim);
+        ContentTransform?.BeginAnimation(TranslateTransform.YProperty, slideAnim);
+        ContentScaleTransform?.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
+        ContentScaleTransform?.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
     }
 
     private void HighlightSidebarItem(IGearModule activeModule)

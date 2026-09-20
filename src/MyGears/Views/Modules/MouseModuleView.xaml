@@ -39,7 +39,7 @@
                 <!-- Loading Spinner xoay vô hạn quanh icon Chuột -->
                 <Border Width="64" Height="64" Margin="0,0,0,14" HorizontalAlignment="Center">
                     <Grid>
-                        <TextBlock Text="⚙" FontSize="44" Foreground="{StaticResource AccentRed}"
+                        <TextBlock Text="⚙" FontSize="44" Foreground="{StaticResource AccentGold}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource SpinningStyle}"/>
                         <TextBlock Text="🖱️" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
