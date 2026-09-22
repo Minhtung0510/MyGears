@@ -1,0 +1,676 @@
+﻿<UserControl x:Class="MyGears.Views.Modules.ValorantModuleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:motion="clr-namespace:MyGears.Views" motion:CheckAccountMotion.Scope="True"
+             Background="{StaticResource BgDeep}"
+             FontFamily="{StaticResource AppFont}">
+
+    <UserControl.Resources>
+        <Style x:Key="InfoCopyStyle" TargetType="Button">
+            <Setter Property="Width" Value="36"/><Setter Property="Height" Value="36"/><Setter Property="Background" Value="#1D1D20"/><Setter Property="Foreground" Value="#A0A0A8"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Frame" Background="{TemplateBinding Background}" CornerRadius="12"><Path Data="M 8,5 L 8,2 L 18,2 L 18,14 L 15,14 M 3,6 L 13,6 L 13,18 L 3,18 Z" Width="15" Height="16" Stretch="Uniform" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.2"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="Background" Value="#303036"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="InfoTabStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#A5A5AE"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="FontSize" Value="13"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton"><Border x:Name="Tab" Background="#161619" CornerRadius="14" Padding="23,13"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="Tab" Property="Background" Value="#00BA88"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tab" Property="Opacity" Value="0.85"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <DataTemplate x:Key="ShopExtraTemplate">
+            <Border motion:CheckAccountMotion.Card="True" Width="235" Margin="6" Padding="12" Background="#151923" BorderBrush="#394554" BorderThickness="1" CornerRadius="8">
+                <StackPanel>
+                    <TextBlock Text="{Binding Category}" Foreground="#94A3B8" FontSize="10"/>
+                    <Grid Height="110" Margin="0,8"><Image Source="{Binding Icon}" Stretch="Uniform"/></Grid>
+                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding PriceText}" Foreground="#EAB308" Margin="0,6"/>
+                    <TextBlock Text="{Binding ExpiryText}" Foreground="#94A3B8" FontSize="10"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0. Header Profile Card -->
+            <RowDefinition Height="Auto"/> <!-- 1. Drawer nhập URL thủ công -->
+            <RowDefinition Height="Auto"/> <!-- 2. Hàng Thống Kê Tổng Quan (Rank, Tier Pills, Mini Metrics) -->
+            <RowDefinition Height="Auto"/> <!-- 3. Thanh Chọn 3 Tab (THÔNG TIN, CỬA HÀNG, KHO ĐỒ) -->
+            <RowDefinition Height="*"/>    <!-- 4. Vùng Nội Dung Chính -->
+            <RowDefinition Height="Auto"/> <!-- 5. Toast Thông Báo -->
+        </Grid.RowDefinitions>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 0: PROFILE HEADER CARD (ĐẦY ĐỦ THÔNG TIN NHƯ NIGHTMARKET)
+             ══════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1" Padding="18,12">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="TxtDataStatus" Grid.Row="1" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="11" Foreground="#F6C768" Margin="0,8,0,0"/>
+                <!-- Trái: Avatar Rank + Riot ID + Sub Meta -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Khung Avatar / Rank Icon -->
+                    <Border Width="46" Height="46" CornerRadius="23" Background="#161824" BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5" Margin="0,0,12,0">
+                        <Image x:Name="ImgProfileRankAvatar" Source="https://media.valorant-api.com/competitivetiers/5641173d-4437-3a4b-d246-dba494f43409/0/largeicon.png"
+                               Width="34" Height="34" Stretch="Uniform" VerticalAlignment="Center" HorizontalAlignment="Center"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+
+                    <!-- Tên Riot ID & Subtitle -->
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtProfileRiotId" Text="Chưa Kết Nối" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimary}" Margin="0,0,8,0"/>
+                            <Border x:Name="BadgeBanStatus" Background="#0E2818" BorderBrush="{StaticResource VintageEmerald}" BorderThickness="1" CornerRadius="3" Padding="6,2" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtBadgeBanStatus" Text="🛡️ SẠCH" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource VintageEmerald}" FontFamily="{StaticResource MonoFont}"/>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                            <TextBlock x:Name="TxtProfileRegion" Text="REGION: AP (vnm)" FontSize="10.5" Foreground="{StaticResource TextMuted}" FontFamily="{StaticResource MonoFont}"/>
+                            <TextBlock Text=" • " FontSize="10.5" Foreground="{StaticResource TextMuted}"/>
+                            <TextBlock x:Name="TxtProfileLastUpdated" Text="LẦN QUÉT: Chưa quét" FontSize="10.5" Foreground="{StaticResource TextMuted}" FontFamily="{StaticResource MonoFont}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Phải: Các Nút Thao Tác (Xóa Bản Quét, 1-Click Đăng Nhập, Dán Link) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="🗑️ XÓA BẢN QUÉT" Click="BtnClearScan_Click"
+                            Style="{StaticResource ToolbarButtonStyle}"
+                            Height="34" Padding="12,0" Margin="0,0,8,0" FontSize="11" Cursor="Hand"
+                            ToolTip="Đăng xuất / Xóa kết quả quét hiện tại"/>
+
+                    <Button Content="🔑 Đăng Nhập Riot (1-Click)" Click="BtnOneClickLogin_Click"
+                            Style="{StaticResource ToolbarButtonStyle}"
+                            Height="34" Padding="12,0" Margin="0,0,8,0" FontSize="11" Cursor="Hand"
+                            ToolTip="Mở trang đăng nhập Riot Games chính thức và tự động bắt token"/>
+
+                    <Button x:Name="BtnToggleManualDrawer" Content="📋 Dán Link" Click="BtnToggleManualDrawer_Click"
+                            Style="{StaticResource ToolbarButtonStyle}"
+                            Height="34" Padding="12,0" FontSize="11" Cursor="Hand"
+                            ToolTip="Nhập link redirect từ trang playvalorant.com/opt_in"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 1: NGĂN DÁN LINK THỦ CÔNG (COLLAPSIBLE)
+             ══════════════════════════════════════════════════ -->
+        <Border x:Name="DrawerManualInput" Grid.Row="1" Background="#10141E" BorderBrush="{StaticResource BorderCard}"
+                BorderThickness="0,0,0,1" Padding="18,10" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Dán URL Redirect:" Foreground="{StaticResource AccentGold}" FontSize="12"
+                           FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                <TextBox Grid.Column="1" x:Name="TxtManualRedirectUrl" Height="34" Background="#0A0C12" Foreground="{StaticResource TextPrimary}"
+                         BorderBrush="{StaticResource BorderCard}" CaretBrush="{StaticResource AccentGold}" FontSize="12"
+                         FontFamily="{StaticResource MonoFont}" Padding="8,6" VerticalAlignment="Center" Margin="0,0,10,0"
+                         ToolTip="Dán toàn bộ URL playvalorant.com/opt_in#access_token=..."/>
+
+                <Button Grid.Column="2" Content="⚡ Quét Ngay" Click="BtnScanManualUrl_Click"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Height="34" Padding="16,0" FontSize="12" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 2: HÀNG THỐNG KÊ TỔNG QUAN (RANK, TIER PILLS, MINI METRICS)
+             ══════════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Background="#0C0E16" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1" Padding="18,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>    <!-- Box 1: RANK -->
+                    <ColumnDefinition Width="1.2*"/>  <!-- Box 2: TIER SUMMARY -->
+                    <ColumnDefinition Width="1.2*"/>  <!-- Box 3: MINI METRICS (LEVEL, VP, RP, KC) -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Box 1: RANK BOX -->
+                <Border Grid.Column="0" Background="#121520" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                        CornerRadius="8" Padding="12,8" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image x:Name="ImgOverviewRankIcon" Source="https://media.valorant-api.com/competitivetiers/5641173d-4437-3a4b-d246-dba494f43409/0/largeicon.png"
+                               Width="36" Height="36" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <Button Content="RANK • XEM LỊCH SỬ ›" Click="BtnRankHistory_Click" HorizontalAlignment="Left" FontSize="10" Padding="4,2" Style="{StaticResource ToolbarButtonStyle}"/>
+                            <TextBlock x:Name="TxtFullRankTitle" Text="Chưa có dữ liệu rank" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Box 2: TIER SUMMARY BOX -->
+                <Border Grid.Column="1" Background="#121520" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                        CornerRadius="8" Padding="12,8" Margin="0,0,8,0">
+                    <Grid VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Đếm tổng skin -->
+                        <TextBlock Grid.Column="0" x:Name="TxtTotalSkinsCount" Text="0 SKINS" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+
+                        <!-- Tier badges row -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                            <!-- Ultra -->
+                            <Border Background="#25160A" BorderBrush="#F1A83B" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" ToolTip="Ultra Edition">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔶 " FontSize="9" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtCountUltra" Text="0" FontSize="11" FontWeight="Bold" Foreground="#F1A83B" FontFamily="{StaticResource MonoFont}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Exclusive -->
+                            <Border Background="#261E0A" BorderBrush="{StaticResource AccentGold}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" ToolTip="Exclusive Edition">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🟠 " FontSize="9" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtCountExclusive" Text="0" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Premium -->
+                            <Border Background="#220D1A" BorderBrush="#D1548D" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" ToolTip="Premium Edition">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🟣 " FontSize="9" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtCountPremium" Text="0" FontSize="11" FontWeight="Bold" Foreground="#D1548D" FontFamily="{StaticResource MonoFont}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Select -->
+                            <Border Background="#0C2020" BorderBrush="#009587" BorderThickness="1" CornerRadius="4" Padding="6,2" ToolTip="Select / Deluxe Edition">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔵 " FontSize="9" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TxtCountSelect" Text="0" FontSize="11" FontWeight="Bold" Foreground="#009587" FontFamily="{StaticResource MonoFont}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Box 3: MINI METRIC (CHỈ SỐ LEVEL) -->
+                <Border Grid.Column="2" Background="#121520" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                        CornerRadius="8" Padding="18,8" VerticalAlignment="Center" MinWidth="95">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="CẤP ĐỘ" FontSize="9.5" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="TxtMetricLevel" Text="--" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentGold}" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 3: THANH CHỌN 3 TAB (THÔNG TIN, CỬA HÀNG, KHO ĐỒ)
+             ══════════════════════════════════════════════════ -->
+        <Border Grid.Row="3" Background="#0A0A0D" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1" Padding="18,8">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Tab 1: THÔNG TIN -->
+                <RadioButton x:Name="TabRadioInfo" Content="🔒 THÔNG TIN"
+                             IsChecked="True" Checked="TabRadio_Checked"
+                             Style="{StaticResource InfoTabStyle}" Margin="0,0,10,0"/>
+
+                <!-- Tab 2: CỬA HÀNG -->
+                <RadioButton x:Name="TabRadioStore" Content="🏪 CỬA HÀNG"
+                             Checked="TabRadio_Checked"
+                             Style="{StaticResource InfoTabStyle}" Margin="0,0,10,0"/>
+
+                <!-- Tab 3: KHO ĐỒ -->
+                <RadioButton x:Name="TabRadioInventory" Content="🎒 KHO ĐỒ"
+                             Checked="TabRadio_Checked"
+                             Style="{StaticResource InfoTabStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 4: VÙNG NỘI DUNG CHÍNH (THEO TỪNG TAB)
+             ══════════════════════════════════════════════════ -->
+        <Grid Grid.Row="4">
+            <!-- ── EMPTY STATE: KHI CHƯA KẾT NỐI TÀI KHOẢN ── -->
+            <Border x:Name="PanelEmptyState" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    MaxWidth="600" Background="{StaticResource PlateBevelGradient}"
+                    BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5" CornerRadius="12" Padding="36,32">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" BlurRadius="28" ShadowDepth="4" Opacity="0.85"/>
+                </Border.Effect>
+                <StackPanel HorizontalAlignment="Center">
+                    <Border Width="68" Height="68" CornerRadius="34" Background="#261E0A" BorderBrush="{StaticResource AccentGold}" BorderThickness="2" HorizontalAlignment="Center" Margin="0,0,0,16">
+                        <TextBlock Text="🎯" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <TextBlock Text="CHƯA KẾT NỐI TÀI KHOẢN VALORANT" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentGold}"
+                               HorizontalAlignment="Center" TextAlignment="Center" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="Đăng nhập tài khoản Riot Games chính chủ để kiểm tra đầy đủ Thông tin tài khoản, Level, Rank, Ví VP/RP/KC, Cửa Hàng Hôm Nay và Kho Skin Sở Hữu."
+                               FontSize="12" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="500" LineHeight="19" Margin="0,0,0,24"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Button Content="🔑 ĐĂNG NHẬP RIOT NGAY (1-CLICK)" Click="BtnOneClickLogin_Click"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Height="40" Padding="20,0" FontSize="12.5" FontWeight="Bold" Cursor="Hand" Margin="0,0,12,0"/>
+
+                        <Button Content="📋 DÁN LINK THỦ CÔNG" Click="BtnToggleManualDrawer_Click"
+                                Style="{StaticResource ToolbarButtonStyle}"
+                                Height="40" Padding="18,0" FontSize="12" Cursor="Hand"/>
+                    </StackPanel>
+
+                    <Border Background="#10141E" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="6" Padding="14,10" MaxWidth="500">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="🛡️" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Xác thực an toàn tuyệt đối qua Riot SSO chính thức. MyGears cam kết KHÔNG lưu trữ mật khẩu hay token của bạn."
+                                       FontSize="11" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- ── TAB 1: THÔNG TIN TÀI KHOẢN & SỐ DƯ VÍ ── -->
+            <ScrollViewer x:Name="PanelInfoView" Background="#0A0A0D" VerticalScrollBarVisibility="Auto" Padding="22,22" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                        <Path Data="M4,10 L20,10 L20,22 L4,22 Z M7,10 L7,6 A5,5 0 0 1 17,6 L17,10" Stroke="#00C995" StrokeThickness="1.8" Width="22" Height="24" Stretch="Uniform" Margin="0,0,12,0"/>
+                        <TextBlock Text="PHÂN TÍCH BẢO MẬT &amp; ĐỊNH GIÁ" Foreground="White" FontWeight="ExtraBold" FontSize="22"/>
+                    </StackPanel>
+                    <UniformGrid Columns="2" Margin="0,0,-14,0">                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#0B2029" VerticalAlignment="Center"><Path Data="M12,2 L20,6 L20,13 Q19,19 12,22 Q5,19 4,13 L4,6 Z M8,12 L11,15 L16,9" Stroke="#00BFF3" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="TÊN ĐĂNG NHẬP" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoUsername" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoUsername" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#101D2C" VerticalAlignment="Center"><Path Data="M12,2 A4,4 0 1 1 11.99,2 M4,22 L4,18 Q4,13 12,13 Q20,13 20,18 L20,22" Stroke="#479FFF" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="RIOT ID (IN-GAME)" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoRiotId" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoRiotId" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#09251D" VerticalAlignment="Center"><Path Data="M2,5 L22,5 L22,19 L2,19 Z M2,5 L12,13 L22,5" Stroke="#00D8A0" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="EMAIL" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoEmail" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoEmail" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#2A1020" VerticalAlignment="Center"><Path Data="M6,2 L18,2 L18,22 L6,22 Z M10,18 L14,18" Stroke="#F146AC" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="SĐT LIÊN KẾT" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoPhone" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoPhone" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#2D1217" VerticalAlignment="Center"><Path Data="M12,2 L20,6 L20,13 Q19,19 12,22 Q5,19 4,13 L4,6 Z M12,7 L12,13 M12,16 L12,18" Stroke="#FF4C60" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="TRẠNG THÁI CẤM" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoBanStatus" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoBanStatus" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#27272B" BorderThickness="1" CornerRadius="18" Padding="18" Margin="0,0,14,14" MinHeight="88">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="23" Background="#19172E" VerticalAlignment="Center"><Path Data="M12,2 A10,10 0 1 1 11.99,2 M2,12 L22,12 M12,2 C5,8 5,16 12,22 C19,16 19,8 12,2" Stroke="#8378FF" StrokeThickness="1.8" StrokeLineJoin="Round" Width="22" Height="22" Stretch="Uniform"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,10,0"><TextBlock Text="QUỐC GIA &amp; MÁY CHỦ" Foreground="#797985" FontSize="10" FontWeight="SemiBold"/><TextBlock x:Name="TxtInfoRegion" Text="Chưa có dữ liệu" TextWrapping="Wrap" Foreground="White" FontWeight="Bold" FontSize="13" Margin="0,7,0,0"/></StackPanel>
+                                <Button Grid.Column="2" Tag="TxtInfoRegion" Click="CopyInfo_Click" Style="{StaticResource InfoCopyStyle}" ToolTip="Sao chép" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>                    </UniformGrid>
+                    <TextBlock x:Name="TxtInfoEmailStatus" Foreground="#00BE91" FontSize="10" Margin="4,0,0,14" TextWrapping="Wrap"/>
+                    <Grid Margin="0,0,-14,20">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border motion:CheckAccountMotion.Card="True" Background="#101012" BorderBrush="#3A2052" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,0,14,0" MinHeight="122">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="110"/></Grid.ColumnDefinitions>
+                                <Border Background="#21152F" BorderBrush="#482660" BorderThickness="1" CornerRadius="26" Width="50" Height="50"><Path Data="M3,5 L21,5 L21,22 L3,22 Z M3,10 L21,10 M7,2 L7,8 M17,2 L17,8 M7,14 L10,14 M14,14 L17,14 M7,18 L10,18" Stroke="#C66AFF" StrokeThickness="1.8" Stretch="Uniform" Width="24" Height="24"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,8,0"><TextBlock Text="NGÀY TẠO" Foreground="#C66AFF" FontWeight="ExtraBold" FontSize="18"/><TextBlock Text="Thời điểm đăng ký lần đầu" Foreground="#A6A6B0" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel>
+                                <Border Grid.Column="2" Background="#140D20" BorderBrush="#492367" BorderThickness="1" CornerRadius="13" VerticalAlignment="Center" Padding="8"><StackPanel><TextBlock x:Name="TxtCreatedTime" Foreground="#CD91FF" FontSize="10" HorizontalAlignment="Center"/><Border Height="1" Background="#492367" Margin="-8,6"/><TextBlock x:Name="TxtCreatedDay" Foreground="White" FontWeight="ExtraBold" FontSize="24" HorizontalAlignment="Center"/><TextBlock x:Name="TxtInfoCreated" TextWrapping="Wrap" TextAlignment="Center" Foreground="#B8AAC9" FontSize="9"/></StackPanel></Border>
+                            </Grid>
+                        </Border>
+                        <Border motion:CheckAccountMotion.Card="True" Grid.Column="1" Background="#101012" BorderBrush="#493A06" BorderThickness="1" CornerRadius="18" Padding="20" Margin="0,0,14,0">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="116"/></Grid.ColumnDefinitions>
+                                <Border Background="#382B00" BorderBrush="#967000" BorderThickness="1" CornerRadius="26" Width="50" Height="50"><TextBlock Text="◉" Foreground="#FFD000" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,8,0"><TextBlock Text="ĐỊNH GIÁ KHO" Foreground="#FFD000" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Ước tính giá trị skin" Foreground="#A6A6B0" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel>
+                                <Border Grid.Column="2" Background="#191600" BorderBrush="#625000" BorderThickness="1" CornerRadius="13" VerticalAlignment="Center" Padding="8" ToolTip="Ước tính theo phẩm chất skin; quy đổi 140 VNĐ/VP, không phải lịch sử nạp/mua."><StackPanel><TextBlock Text="ĐỊNH GIÁ VP" Foreground="#FFD000" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center"/><Border Height="1" Background="#625000" Margin="-8,6"/><TextBlock x:Name="TxtInfoTotalVp" Foreground="White" FontSize="16" FontWeight="ExtraBold" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock x:Name="TxtInfoVnd" Foreground="#00DCA1" FontSize="9" TextAlignment="Center" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel></Border>
+                            </Grid>
+                        </Border>
+                    </Grid>                    <Border Background="#121620" BorderBrush="#303846" BorderThickness="1" CornerRadius="9" Padding="16" Margin="5,0,5,18">
+                     <UniformGrid Columns="5">
+                      <StackPanel><TextBlock Text="CẤP ĐỘ" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TxtInfoLevel" Foreground="White" Margin="0,6" FontWeight="Bold"/></StackPanel>
+                      <StackPanel><TextBlock Text="RANK" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TxtInfoRank" Foreground="White" Margin="0,6" FontWeight="Bold" TextWrapping="Wrap"/></StackPanel>
+                      <StackPanel><TextBlock Text="VALORANT POINTS" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TxtInfoVp" Foreground="#FF4655" Margin="0,6" FontWeight="Bold"/></StackPanel>
+                      <StackPanel><TextBlock Text="RADIANITE POINTS" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TxtInfoRp" Foreground="#38BDF8" Margin="0,6" FontWeight="Bold"/></StackPanel>
+                      <StackPanel><TextBlock Text="KINGDOM CREDITS" Foreground="#94A3B8" FontSize="10"/><TextBlock x:Name="TxtInfoKc" Foreground="#A855F7" Margin="0,6" FontWeight="Bold"/></StackPanel>
+                     </UniformGrid>
+                    </Border>
+                    <!-- Hàng Dưới: TỔNG QUAN KHO ĐỒ SỞ HỮU -->
+                    <Border Background="#10131D" BorderBrush="{StaticResource BorderCard}" BorderThickness="1.2" CornerRadius="10" Padding="20,16">
+                        <StackPanel>
+                            <TextBlock Text="📦 TỔNG QUAN KHO ĐỒ SỞ HỮU" FontSize="13" FontWeight="Bold" Foreground="#FF4655" Margin="0,0,0,16"/>
+
+                            <UniformGrid Columns="5">
+                                <!-- WEAPON SKINS -->
+                                <Border Background="#141824" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🎯" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="TxtCountWeapons" Text="0" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="WEAPON SKINS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- GUN BUDDIES -->
+                                <Border Background="#141824" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🔑" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="TxtCountBuddies" Text="0" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="GUN BUDDIES" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- PLAYER CARDS -->
+                                <Border Background="#141824" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🪪" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="TxtCountCards" Text="0" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="PLAYER CARDS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- SPRAYS -->
+                                <Border Background="#141824" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,0">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🎨" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="TxtCountSprays" Text="0" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="SPRAYS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- AGENTS -->
+                                <Border Background="#141824" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="🥷" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                        <TextBlock x:Name="TxtCountAgents" Text="0" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                        <TextBlock Text="AGENTS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ── TAB 2: CỬA HÀNG HÀNG NGÀY & CHỢ ĐÊM ── -->
+            <ScrollViewer x:Name="PanelStoreView" VerticalScrollBarVisibility="Auto" Padding="20,16" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="TxtStoreStatus" Foreground="#F6C768" TextWrapping="Wrap" Margin="6,0,6,12"/>
+                    <!-- Tiêu đề mục Daily Store + Timer Box -->
+                    <Border Background="#10131D" BorderBrush="{StaticResource BorderCard}" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,16">
+                        <Grid>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="🏪 CỬA HÀNG HÀNG NGÀY // DAILY STORE" FontSize="13.5" FontWeight="Bold" Foreground="#FF4655"/>
+                                <TextBlock Text="Skin và giá từ lần quét Riot gần nhất." FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,3,0,0"/>
+                            </StackPanel>
+
+                            <!-- Khung đếm ngược viền đỏ/vàng -->
+                            <Border HorizontalAlignment="Right" Background="#1C0E12" BorderBrush="#FF4655" BorderThickness="1" CornerRadius="6" Padding="12,6">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="LÀM MỚI SAU" FontSize="9.5" FontWeight="Bold" Foreground="#FF4655" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                    <TextBlock x:Name="TxtStoreCountdown" Text="--:--:--" FontSize="13" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Lưới 4 Skin Cửa Hàng Hôm Nay -->
+                    <ItemsControl x:Name="ItemsDailyStore">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="4"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border motion:CheckAccountMotion.Card="True" Background="{StaticResource PlateBevelGradient}" BorderBrush="{Binding Skin.TierColor}" BorderThickness="1.5"
+                                        CornerRadius="10" Margin="6" Padding="14,12" MinHeight="190">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="2" Opacity="0.75"/>
+                                    </Border.Effect>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Badge Phẩm chất -->
+                                        <Border Grid.Row="0" HorizontalAlignment="Right" Background="#1A1C24" BorderBrush="{Binding Skin.TierColor}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding Skin.TierName}" FontSize="9.5" FontWeight="Bold" Foreground="{Binding Skin.TierColor}" FontFamily="{StaticResource MonoFont}"/>
+                                        </Border>
+
+                                        <!-- Hình ảnh súng render 3D -->
+                                        <Viewbox Grid.Row="1" Height="95" Stretch="Uniform" Margin="0,8,0,8">
+                                            <Image Source="{Binding Skin.DisplayIcon}" Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                        </Viewbox>
+
+                                        <!-- Tên Skin -->
+                                        <TextBlock Grid.Row="2" Text="{Binding Skin.DisplayName}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"
+                                                   TextTrimming="CharacterEllipsis" Margin="0,0,0,4"/>
+
+                                        <!-- Giá tiền VP -->
+                                        <StackPanel Grid.Row="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🟢 " FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding PriceText}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource VintageEmerald}" FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Mục Chợ Đêm (Night Market) -->
+                    <Border x:Name="PanelNightMarket" Background="#161224" BorderBrush="#9B59B6" BorderThickness="1.2"
+                            CornerRadius="10" Padding="16,14" Margin="0,20,0,0" Visibility="Collapsed">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="🌙" FontSize="16" Margin="0,0,6,0"/>
+                                    <TextBlock Text="CỬA HÀNG CHỢ ĐÊM // NIGHT MARKET (ƯU ĐÃI ĐẶC BIỆT)" FontSize="13" FontWeight="Bold" Foreground="#E0B0FF"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <ItemsControl x:Name="ItemsNightMarket">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="3"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border motion:CheckAccountMotion.Card="True" Background="#120E1C" BorderBrush="{Binding Skin.TierColor}" BorderThickness="1.2"
+                                                CornerRadius="8" Margin="6" Padding="12">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Nhãn phần trăm giảm giá -->
+                                                <Border Grid.Row="0" HorizontalAlignment="Right" Background="#9B59B6" CornerRadius="4" Padding="6,2">
+                                                    <TextBlock Text="{Binding DiscountPercent, StringFormat='-{0}%'}" FontSize="10" FontWeight="Bold" Foreground="White" FontFamily="{StaticResource MonoFont}"/>
+                                                </Border>
+
+                                                <Viewbox Grid.Row="1" Height="75" Stretch="Uniform" Margin="0,6">
+                                                    <Image Source="{Binding Skin.DisplayIcon}" Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                </Viewbox>
+                                                <TextBlock Grid.Row="2" Text="{Binding Skin.DisplayName}" FontSize="12" FontWeight="Bold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+
+                                                <!-- Giá gốc & Giá giảm -->
+                                                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding OriginalCost, StringFormat='{}{0:N0}'}" FontSize="10.5" Foreground="{StaticResource TextMuted}" TextDecorations="Strikethrough" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding PriceText}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource VintageEmerald}" FontFamily="{StaticResource MonoFont}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock x:Name="TxtNightExpiry" Foreground="#CDB0E5" Margin="6,10"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="BUNDLE NỔI BẬT" Foreground="#EAB308" FontWeight="Bold" FontSize="14" Margin="6,22,0,8"/>
+                    <TextBlock x:Name="TxtBundleEmpty" Text="Không có dữ liệu bundle trong bản quét." Foreground="#94A3B8" Margin="6"/>
+                    <ItemsControl x:Name="ItemsBundles" ItemTemplate="{StaticResource ShopExtraTemplate}">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <TextBlock Text="CỬA HÀNG PHỤ KIỆN • KC" Foreground="#EAB308" FontWeight="Bold" FontSize="14" Margin="6,22,0,8"/>
+                    <TextBlock x:Name="TxtAccessoryEmpty" Text="Không có dữ liệu phụ kiện trong bản quét." Foreground="#94A3B8" Margin="6"/>
+                    <ItemsControl x:Name="ItemsAccessories" ItemTemplate="{StaticResource ShopExtraTemplate}">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ── TAB 3: KHO SKIN SỞ HỮU (INVENTORY) ── -->
+            <Grid x:Name="PanelInventoryView" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Category Pills: WEAPON SKINS, BUDDIES, CARDS... -->
+                    <RowDefinition Height="Auto"/> <!-- Weapon Type Filters & Search -->
+                    <RowDefinition Height="*"/>    <!-- Content: Lưới Skin hoặc Thông báo rỗng -->
+                    <RowDefinition Height="Auto"/> <!-- Footer thống kê -->
+                </Grid.RowDefinitions>
+
+                <!-- Hàng Category Pills (WEAPON SKINS, BUDDIES, CARDS, SPRAYS, AGENTS) -->
+                <Border Grid.Row="0" Background="#0E111A" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1" Padding="18,8">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="BtnCatWeaponSkins" Content="WEAPON SKINS" Tag="weapons" Click="BtnCatPill_Click" Style="{StaticResource SubCategoryPillStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnCatBuddies" Content="BUDDIES" Tag="buddies" Click="BtnCatPill_Click" Style="{StaticResource SubCategoryPillStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnCatCards" Content="CARDS" Tag="cards" Click="BtnCatPill_Click" Style="{StaticResource SubCategoryPillStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnCatSprays" Content="SPRAYS" Tag="sprays" Click="BtnCatPill_Click" Style="{StaticResource SubCategoryPillStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnCatAgents" Content="AGENTS" Tag="agents" Click="BtnCatPill_Click" Style="{StaticResource SubCategoryPillStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Bộ lọc vũ khí / danh mục & Ô tìm kiếm -->
+                <Border Grid.Row="1" Background="#121620" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,0,0,1" Padding="18,8">
+                    <Grid>
+                        <!-- Bộ lọc theo súng (chỉ hiện khi đang ở tab WEAPON SKINS) -->
+                        <WrapPanel x:Name="PanelWeaponSubFilter" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Tất Cả" Tag="All" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                            <Button Content="Vandal" Tag="Vandal" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                            <Button Content="Phantom" Tag="Phantom" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                            <Button Content="Cận Chiến" Tag="Cận chiến" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                            <Button Content="Operator" Tag="Operator" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                            <Button Content="Sheriff" Tag="Sheriff" Click="FilterWeapon_Click" Style="{StaticResource ToolbarButtonStyle}" Margin="0,0,6,0" Padding="10,4" FontSize="11"/>
+                        </WrapPanel>
+
+                        <!-- Tiêu đề khi xem danh mục khác (Buddies, Cards, Sprays, Agents) -->
+                        <TextBlock x:Name="TxtCategoryHeaderLabel" Text="Danh sách vật phẩm đã mở khóa" VerticalAlignment="Center"
+                                   FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Visibility="Collapsed"/>
+
+                        <!-- Ô tìm kiếm -->
+                        <TextBox x:Name="TxtSearchSkin" Width="200" Height="28" HorizontalAlignment="Right"
+                                 Background="#0A0D14" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderCard}"
+                                 CaretBrush="{StaticResource AccentGold}" FontSize="11.5" Padding="6,3"
+                                 TextChanged="TxtSearchSkin_TextChanged" ToolTip="Tìm kiếm theo tên vật phẩm..."/>
+                    </Grid>
+                </Border>
+
+                <!-- Vùng nội dung Kho: Lưới danh sách Vật phẩm hoặc Hộp rỗng -->
+                <Grid Grid.Row="2">
+                    <!-- Hộp trống khi danh mục chưa có vật phẩm -->
+                    <StackPanel x:Name="PanelEmptyInventory" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="0,40">
+                        <TextBlock Text="📦" FontSize="44" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock x:Name="TxtEmptyInventoryNotice" Text="Không tìm thấy vật phẩm nào thuộc danh mục này." FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Lưới danh sách Vật phẩm (Skins, Buddies, Cards, Sprays, Agents) -->
+                    <ScrollViewer x:Name="ScrollInventorySkins" VerticalScrollBarVisibility="Auto" Padding="18,14">
+                        <ItemsControl x:Name="ItemsOwnedSkins">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border motion:CheckAccountMotion.Card="True" Width="190" Height="175" Background="{StaticResource PlateBevelGradient}"
+                                            BorderBrush="{Binding BorderColor}" BorderThickness="1.2"
+                                            CornerRadius="8" Margin="6" Padding="10">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.7"/>
+                                        </Border.Effect>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- Badge phẩm chất / loại -->
+                                            <Border Grid.Row="0" HorizontalAlignment="Left" Background="#141822" BorderBrush="{Binding BorderColor}" BorderThickness="0.8" CornerRadius="3" Padding="5,1">
+                                                <TextBlock Text="{Binding TagText}" FontSize="8.5" FontWeight="Bold" Foreground="{Binding BorderColor}" FontFamily="{StaticResource MonoFont}"/>
+                                            </Border>
+
+                                            <!-- Hình ảnh vật phẩm -->
+                                            <Viewbox Grid.Row="1" Height="75" Stretch="Uniform" Margin="0,4">
+                                                <Image Source="{Binding DisplayIcon}" Stretch="None" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Viewbox>
+
+                                            <!-- Tên Vật phẩm -->
+                                            <TextBlock Grid.Row="2" Text="{Binding DisplayName}" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"
+                                                       TextTrimming="CharacterEllipsis" Margin="0,0,0,2"/>
+
+                                            <!-- Loại & Giá VP -->
+                                            <Grid Grid.Row="3">
+                                                <TextBlock Text="{Binding CategoryName}" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding CostDisplay}" FontSize="10.5" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource AccentGold}" HorizontalAlignment="Right" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Footer thống kê -->
+                <Border Grid.Row="3" Background="{StaticResource BgSidebar}" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0,1,0,0" Padding="18,8">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📊 Tổng cộng: " Foreground="{StaticResource TextMuted}" FontSize="11.5"/>
+                            <TextBlock x:Name="TxtInvTotalCount" Text="0 Skins" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" FontSize="11.5" Margin="0,0,16,0"/>
+                            <TextBlock Text="💎 Tổng giá trị ước tính: " Foreground="{StaticResource TextMuted}" FontSize="11.5"/>
+                            <TextBlock x:Name="TxtInvTotalValue" Text="0 VP" FontWeight="Bold" Foreground="{StaticResource AccentGold}" FontSize="11.5" FontFamily="{StaticResource MonoFont}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="ScanBusyOverlay" Grid.RowSpan="6" Panel.ZIndex="20" Background="#DD0B0E14" Visibility="Collapsed">
+            <Border Background="#191E29" BorderBrush="#625439" BorderThickness="1" CornerRadius="16" Padding="30" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Ellipse Width="34" Height="34" Stroke="#F6C768" StrokeThickness="3" StrokeDashArray="7 3" RenderTransformOrigin="0.5,0.5" Margin="0,0,0,18"><Ellipse.RenderTransform><RotateTransform x:Name="ScanSpinnerTransform"/></Ellipse.RenderTransform></Ellipse>
+                    <TextBlock Text="ĐANG QUÉT TÀI KHOẢN" Foreground="White" FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Đang lấy kho đồ, rank, số dư và cửa hàng từ Riot…" Foreground="#A6ADBA" Margin="0,9,0,0" TextWrapping="Wrap" MaxWidth="340" TextAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        <!-- Khung ẩn để render ảnh PNG thẻ Inspector -->
+        <Border x:Name="InspectorCardCanvas" Width="960" Height="540" Background="#0A0B12" Visibility="Collapsed"/>
+
+        <!-- ══════════════════════════════════════════════════
+             ROW 5: TOAST THÔNG BÁO TỰ ĐỘNG
+             ══════════════════════════════════════════════════ -->
+        <Border x:Name="ToastNotice" Grid.Row="5" Background="#10261C" BorderBrush="{StaticResource VintageEmerald}"
+                BorderThickness="0,1,0,0" Padding="14,8" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="✅" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TxtToastMessage" Text="Thao tác hoàn tất!" FontSize="11.5" Foreground="{StaticResource VintageEmerald}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
+
+

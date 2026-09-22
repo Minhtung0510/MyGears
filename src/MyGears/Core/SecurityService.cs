@@ -170,6 +170,37 @@ public static class SecurityService
     private static CancellationTokenSource? _clipboardWipeCts;
 
     /// <summary>
+    /// Đưa nội dung vào Clipboard với cơ chế thử lại nếu clipboard đang bị tiến trình khác chiếm quyền
+    /// </summary>
+    public static bool SafeSetClipboard(string text, int retries = 5, int delayMs = 50)
+    {
+        for (int i = 0; i < retries; i++)
+        {
+            try
+            {
+                Clipboard.SetDataObject(text, true);
+                return true;
+            }
+            catch (COMException)
+            {
+                if (i == retries - 1) return false;
+                Thread.Sleep(delayMs);
+            }
+            catch (ExternalException)
+            {
+                if (i == retries - 1) return false;
+                Thread.Sleep(delayMs);
+            }
+            catch
+            {
+                if (i == retries - 1) return false;
+                Thread.Sleep(delayMs);
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Copy nội dung (ví dụ tk:mk) vào Clipboard và bắt đầu đếm ngược tự xóa
     /// </summary>
     public static void CopyToClipboardWithAutoWipe(
@@ -180,8 +211,8 @@ public static class SecurityService
     {
         try
         {
-            // Đưa vào Clipboard an toàn
-            Clipboard.SetDataObject(textToCopy, true);
+            // Đưa vào Clipboard an toàn với cơ chế retry chống xung đột
+            SafeSetClipboard(textToCopy);
 
             // Hủy đếm ngược cũ nếu đang chạy
             _clipboardWipeCts?.Cancel();
@@ -237,6 +268,30 @@ public static class SecurityService
     {
         try
         {
+            // Kiểm tra an toàn bắt buộc: chặn tuyệt đối rủi ro xóa nhầm thư mục gốc ổ đĩa
+            if (string.IsNullOrWhiteSpace(deployedRootPath))
+            {
+                MessageBox.Show("Đường dẫn tự hủy không hợp lệ. Đã hủy thao tác để bảo vệ an toàn máy tính.", "MyGears Security", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var fullPath = Path.GetFullPath(deployedRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var rootDrive = Path.GetPathRoot(fullPath)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            // Chặn tuyệt đối nếu đường dẫn là thư mục gốc của phân vùng (C:\, D:\, ...)
+            if (string.Equals(fullPath, rootDrive, StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("CẢNH BÁO AN TOÀN: Tuyệt đối không thể tự hủy trên thư mục gốc của ổ đĩa!", "MyGears Security", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Chặn nếu đường dẫn không chứa thư mục định danh MyGears hoặc quá ngắn
+            if (fullPath.Length < 8 || !fullPath.Contains("MyGears", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("CẢNH BÁO AN TOÀN: Thư mục mục tiêu không thuộc phạm vi cài đặt của MyGears!", "MyGears Security", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             // 1. Xóa sạch Clipboard ngay lập tức
             try { Clipboard.Clear(); } catch { }
 
@@ -271,7 +326,7 @@ public static class SecurityService
 
             // 5. Khởi chạy lệnh xóa thư mục cài đặt ngầm bằng CMD độc lập (sau khi MyGears tắt)
             // Lệnh: timeout 1 giây để app thoát hoàn toàn -> rmdir /s /q -> exit
-            var cmdScript = $"/c ping 127.0.0.1 -n 2 >nul & rmdir /s /q \"{deployedRootPath}\" & exit";
+            var cmdScript = $"/c ping 127.0.0.1 -n 2 >nul & rmdir /s /q \"{fullPath}\" & exit";
             var psi = new ProcessStartInfo
             {
                 FileName = "cmd.exe",

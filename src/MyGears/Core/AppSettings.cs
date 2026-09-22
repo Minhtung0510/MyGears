@@ -14,6 +14,9 @@ public class AppSettings
 
     // ── UI App ────────────────────────────────────
     public AppUiSettings Ui { get; set; } = new();
+
+    // ── GitHub Token (Tự động upload asset lên Release) ──
+    public string GitHubToken { get; set; } = string.Empty;
 }
 
 public class MouseSettings

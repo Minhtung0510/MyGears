@@ -11,7 +11,7 @@ public class HeadsetModule : IGearModule
     public string DisplayNameVi => "Tai nghe";
     public string DisplayNameEn => "Headset";
     public string Icon => "🎧";
-    public int Order => 3;
+    public int Order => 4;
     public bool IsAvailable => false;
     public string? UnavailableReason => "Chức năng sắp ra mắt / Coming soon";
 
@@ -50,7 +50,7 @@ public class OtherModule : IGearModule
     public string DisplayNameVi => "Khác";
     public string DisplayNameEn => "Other";
     public string Icon => "⚙️";
-    public int Order => 4;
+    public int Order => 5;
     public bool IsAvailable => true;
     public string? UnavailableReason => null;
 

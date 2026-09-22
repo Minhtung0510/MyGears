@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.IO;
 
 namespace MyGears.Core;
@@ -61,13 +61,15 @@ public static class DriverDiscoveryService
         bool appExistsOnPc = Directory.Exists(Path.Combine(targetRoot, "App")) &&
                              File.Exists(Path.Combine(targetRoot, "App", "MyGears.exe"));
 
+        string AppVersion(string path) => File.Exists(path) ? System.Diagnostics.FileVersionInfo.GetVersionInfo(path).FileVersion ?? "không rõ" : "chưa cài";
+        var versionInfo = $"Nguồn v{AppVersion(Path.Combine(appDir, "MyGears.exe"))} → Máy v{AppVersion(Path.Combine(targetRoot, "App", "MyGears.exe"))}. ";
         list.Add(new InstallableComponent
         {
             Id = "core_app",
             Name = "Ứng dụng MyGears Core (Bắt buộc)",
-            Description = appExistsOnPc
-                ? "Ứng dụng chính (Đã có trên máy tính — tự động đồng bộ file mới nếu có thay đổi)"
-                : "Ứng dụng chính, giao diện điều khiển, kho tài khoản mã hóa AES-256",
+            Description = versionInfo + (appExistsOnPc
+                ? "Cập nhật bản trên máy bằng bản nguồn; xác minh SHA-256 và giữ tài khoản/cài đặt hiện có."
+                : "Ứng dụng chính, giao diện điều khiển, kho tài khoản mã hóa AES-256"),
             Icon = "⚙️",
             SourcePath = appDir,
             DestinationPath = Path.Combine(targetRoot, "App"),
@@ -92,8 +94,9 @@ public static class DriverDiscoveryService
                 long dirSize = GetDirectorySize(subDir);
                 var targetSubDir = Path.Combine(targetRoot, "Download", folderName);
 
-                // Kiểm tra xem đã có thư mục và file trong C:\Users\Public\MyGears\Download\<folderName> chưa
-                bool existsInTarget = Directory.Exists(targetSubDir) && Directory.EnumerateFileSystemEntries(targetSubDir).Any();
+                // Kiểm tra xem đã có thư mục và file hợp lệ trong C:\Users\Public\MyGears\Download\<folderName> chưa
+                bool existsInTarget = Directory.Exists(targetSubDir) &&
+                                      Directory.GetFiles(targetSubDir, "*", SearchOption.AllDirectories).Any(f => new FileInfo(f).Length > 0);
                 bool alreadyExists = existsInTarget;
 
                 string name;
@@ -123,7 +126,8 @@ public static class DriverDiscoveryService
                     name = "Microsoft WebView2 Runtime";
                     desc = "Bộ cài runtime Microsoft để hiển thị giao diện bàn phím hub.fgg.com.cn";
 
-                    // Kiểm tra xem máy đã cài WebView2 Runtime sẵn chưa
+                    // Kiểm tra thực tế xem máy Windows đã cài WebView2 Runtime sẵn chưa (không tính file bộ cài)
+                    alreadyExists = false;
                     try
                     {
                         var wvVer = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();
@@ -407,8 +411,9 @@ public static class DriverDiscoveryService
         var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         var targetSubDir = Path.Combine(targetRoot, "Download", baseName);
 
-        // Kiểm tra xem đã có thư mục hoặc file trong C:\Users\Public\MyGears\Download\<baseName> chưa
-        bool alreadyExists = Directory.Exists(targetSubDir) && Directory.EnumerateFileSystemEntries(targetSubDir).Any();
+        // Kiểm tra xem đã có thư mục và file hợp lệ trong C:\Users\Public\MyGears\Download\<baseName> chưa
+        bool alreadyExists = Directory.Exists(targetSubDir) &&
+                             Directory.GetFiles(targetSubDir, "*", SearchOption.AllDirectories).Any(f => new FileInfo(f).Length > 0);
 
         string name;
         string desc;
@@ -433,6 +438,7 @@ public static class DriverDiscoveryService
             icon = "🌐";
             name = "Microsoft WebView2 Runtime (GitHub Cloud)";
             desc = "Bộ cài runtime Microsoft để hiển thị giao diện bàn phím hub.fgg.com.cn";
+            alreadyExists = false;
             try
             {
                 var wvVer = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,6 +19,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        var version = typeof(MainWindow).Assembly.GetName().Version;
+        TxtBuildVersion.Text = $"MyGears • v{version?.ToString(3)}";
+        TxtBuildVersion.ToolTip = $"Đang chạy: {Environment.ProcessPath}";
+        Title = $"MyGears v{version?.ToString(3)} — {Environment.ProcessPath}";
         _vm = (MainViewModel)DataContext;
 
         // Khởi tạo hệ thống đồng hồ kim analog và buồng bánh răng cơ khí
@@ -37,6 +41,28 @@ public partial class MainWindow : Window
             if (e.PropertyName == nameof(MainViewModel.ActiveModule))
                 UpdateContentArea(_vm.ActiveModule);
         };
+    }
+
+    private void UpdateInstalledApp_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var target = System.IO.Path.Combine(UsbPathResolver.LocalDeployTargetDir, "App", "MyGears.exe");
+            var source = Environment.ProcessPath;
+            if (string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
+            {
+                var usb = UsbPathResolver.FindConnectedUsbRoot();
+                source = usb == null ? null : System.IO.Path.Combine(usb, "App", "MyGears.exe");
+            }
+            if (string.IsNullOrEmpty(source) || !System.IO.File.Exists(source) || string.Equals(source, target, StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Hãy kết nối USB có App/MyGears.exe bản mới rồi thử lại.", "MyGears — Cập nhật");
+                return;
+            }
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(source, "--setup") { UseShellExecute = true });
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex) { MessageBox.Show($"Chưa mở được bộ cập nhật: {ex.Message}", "MyGears"); }
     }
 
     protected override void OnSourceInitialized(EventArgs e)

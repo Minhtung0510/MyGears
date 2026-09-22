@@ -60,6 +60,7 @@ public static class SettingsService
         {
             var json = JsonSerializer.Serialize(Current, _jsonOptions);
             await File.WriteAllTextAsync(path, json);
+            SyncToUsb(json);
         }
         catch (Exception ex)
         {
@@ -75,10 +76,39 @@ public static class SettingsService
         {
             var json = JsonSerializer.Serialize(Current, _jsonOptions);
             File.WriteAllText(path, json);
+            SyncToUsb(json);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[SettingsService] Lỗi ghi settings: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Luôn tự động đồng bộ file settings.json sang USB để khi cắm qua máy khác
+    /// mọi cấu hình (bao gồm GitHub Token) đều được giữ nguyên vẹn.
+    /// </summary>
+    private static void SyncToUsb(string json)
+    {
+        try
+        {
+            var usb = UsbPathResolver.IsRunningFromUsb
+                ? UsbPathResolver.UsbRoot
+                : (UsbPathResolver.FindConnectedUsbRoot() ?? UsbPathResolver.UsbRoot);
+
+            if (!string.IsNullOrEmpty(usb) && Directory.Exists(usb))
+            {
+                var usbApp = Path.Combine(usb, "App");
+                if (Directory.Exists(usbApp))
+                {
+                    File.WriteAllText(Path.Combine(usbApp, "settings.json"), json);
+                }
+                else
+                {
+                    File.WriteAllText(Path.Combine(usb, "settings.json"), json);
+                }
+            }
+        }
+        catch { }
     }
 }

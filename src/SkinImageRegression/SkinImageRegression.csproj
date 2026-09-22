@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../MyGears/Core/SkinSearch.cs" Link="SkinSearch.cs" />
+    <Compile Include="../MyGears/Core/VerifiedAppUpdate.cs" Link="VerifiedAppUpdate.cs" />
+    <Compile Include="../MyGears/Core/ValorantApiService.cs" Link="ValorantApiService.cs" />
+    <Compile Include="../MyGears/Core/ValorantModels.cs" Link="ValorantModels.cs" />
+    <Compile Include="../MyGears/Core/ValorantShopRank.cs" Link="ValorantShopRank.cs" />
+    <Compile Include="../MyGears/Core/ValorantIdentity.cs" Link="ValorantIdentity.cs" />
+    <Compile Include="../MyGears/Core/RiotLoginPrefill.cs" Link="RiotLoginPrefill.cs" />
+    <None Update="prime-skin-metadata.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -92,6 +92,18 @@ public static class DependencyChecker
     /// </summary>
     public static bool IsInstalled(DependencyEntry entry)
     {
+        // Kiểm tra đặc thù WebView2 Runtime bằng API chuẩn Microsoft
+        if (entry.Id.Equals("WebView2Runtime", StringComparison.OrdinalIgnoreCase) ||
+            entry.DisplayName.Contains("WebView2", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var ver = Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString();
+                if (!string.IsNullOrEmpty(ver)) return true;
+            }
+            catch { }
+        }
+
         return entry.CheckType.ToLowerInvariant() switch
         {
             "registry" => CheckByRegistry(entry),
@@ -111,18 +123,37 @@ public static class DependencyChecker
 
         try
         {
-            // Parse "HKLM\..." hoặc "HKCU\..."
-            var (hive, subKey) = ParseRegistryKey(entry.RegistryKey);
+            var (hiveType, subKey) = ParseRegistryKey(entry.RegistryKey);
 
-            using var key = hive.OpenSubKey(subKey);
-            if (key == null) return false;
-
-            // Nếu không cần check value cụ thể, chỉ cần key tồn tại là đủ
-            if (string.IsNullOrWhiteSpace(entry.RegistryValue))
+            // Kiểm tra trên cả 64-bit và 32-bit Registry Views
+            if (CheckKeyInView(hiveType, subKey, RegistryView.Registry64, entry.RegistryValue) ||
+                CheckKeyInView(hiveType, subKey, RegistryView.Registry32, entry.RegistryValue))
+            {
                 return true;
+            }
 
-            var value = key.GetValue(entry.RegistryValue);
-            return value != null && value.ToString() != "0.0.0.0";
+            // Nếu key có WOW6432Node, thử bỏ WOW6432Node\ để tìm key 64-bit gốc
+            if (subKey.Contains("WOW6432Node\\", StringComparison.OrdinalIgnoreCase))
+            {
+                var nativeSubKey = subKey.Replace("WOW6432Node\\", "", StringComparison.OrdinalIgnoreCase);
+                if (CheckKeyInView(hiveType, nativeSubKey, RegistryView.Registry64, entry.RegistryValue))
+                    return true;
+            }
+
+            // Fallback: nếu đang check HKLM cho EdgeUpdate, thử check cả HKCU (User-level install)
+            if (hiveType == RegistryHive.LocalMachine && subKey.Contains("EdgeUpdate", StringComparison.OrdinalIgnoreCase))
+            {
+                if (CheckKeyInView(RegistryHive.CurrentUser, subKey, RegistryView.Default, entry.RegistryValue))
+                    return true;
+                if (subKey.Contains("WOW6432Node\\", StringComparison.OrdinalIgnoreCase))
+                {
+                    var nativeSubKey = subKey.Replace("WOW6432Node\\", "", StringComparison.OrdinalIgnoreCase);
+                    if (CheckKeyInView(RegistryHive.CurrentUser, nativeSubKey, RegistryView.Default, entry.RegistryValue))
+                        return true;
+                }
+            }
+
+            return false;
         }
         catch
         {
@@ -130,7 +161,27 @@ public static class DependencyChecker
         }
     }
 
-    private static (RegistryKey hive, string subKey) ParseRegistryKey(string fullPath)
+    private static bool CheckKeyInView(RegistryHive hive, string subKey, RegistryView view, string? valueName)
+    {
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(hive, view);
+            using var key = baseKey.OpenSubKey(subKey);
+            if (key == null) return false;
+
+            if (string.IsNullOrWhiteSpace(valueName))
+                return true;
+
+            var val = key.GetValue(valueName);
+            return val != null && val.ToString() != "0.0.0.0";
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static (RegistryHive hive, string subKey) ParseRegistryKey(string fullPath)
     {
         var idx = fullPath.IndexOf('\\');
         if (idx < 0) throw new ArgumentException($"Registry key không hợp lệ: {fullPath}");
@@ -138,11 +189,11 @@ public static class DependencyChecker
         var hiveStr = fullPath[..idx].ToUpperInvariant();
         var subKey  = fullPath[(idx + 1)..];
 
-        RegistryKey hive = hiveStr switch
+        RegistryHive hive = hiveStr switch
         {
-            "HKLM" or "HKEY_LOCAL_MACHINE"  => Registry.LocalMachine,
-            "HKCU" or "HKEY_CURRENT_USER"   => Registry.CurrentUser,
-            "HKCR" or "HKEY_CLASSES_ROOT"   => Registry.ClassesRoot,
+            "HKLM" or "HKEY_LOCAL_MACHINE"  => RegistryHive.LocalMachine,
+            "HKCU" or "HKEY_CURRENT_USER"   => RegistryHive.CurrentUser,
+            "HKCR" or "HKEY_CLASSES_ROOT"   => RegistryHive.ClassesRoot,
             _ => throw new ArgumentException($"Hive không hỗ trợ: {hiveStr}")
         };
 

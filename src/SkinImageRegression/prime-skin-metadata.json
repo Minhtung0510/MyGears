@@ -1,0 +1,82 @@
+{
+  "uuid": "b9ee2457-481c-6776-3f5b-0ca8e8f90c89",
+  "displayName": "Prime Vandal",
+  "themeUuid": "9436fe00-4156-e115-b11f-f69cac91a6a5",
+  "contentTierUuid": "60bca009-4182-7998-dee7-b8a2558dc369",
+  "contentEditionUuid": null,
+  "displayIcon": "https://media.valorant-api.com/weaponskins/b9ee2457-481c-6776-3f5b-0ca8e8f90c89/displayicon.png",
+  "wallpaper": null,
+  "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/AssaultRifle_AK_HypeBeast_PrimaryAsset",
+  "chromas": [
+    {
+      "uuid": "a26e0d1d-4886-7d62-6b4f-1996e706463d",
+      "displayName": "Prime Vandal",
+      "displayIcon": "https://media.valorant-api.com/weaponskinchromas/a26e0d1d-4886-7d62-6b4f-1996e706463d/displayicon.png",
+      "fullRender": "https://media.valorant-api.com/weaponskinchromas/a26e0d1d-4886-7d62-6b4f-1996e706463d/fullrender.png",
+      "swatch": "https://media.valorant-api.com/weaponskinchromas/a26e0d1d-4886-7d62-6b4f-1996e706463d/swatch.png",
+      "streamedVideo": null,
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/Chromas/Standard/AssaultRifle_AK_HypeBeast_Standard_PrimaryAsset"
+    },
+    {
+      "uuid": "ad2b0b8b-4da8-9c88-331a-028f2026ab66",
+      "displayName": "Prime Vandal Level 4\r\n(Variant 1 Orange)",
+      "displayIcon": "https://media.valorant-api.com/weaponskinchromas/ad2b0b8b-4da8-9c88-331a-028f2026ab66/displayicon.png",
+      "fullRender": "https://media.valorant-api.com/weaponskinchromas/ad2b0b8b-4da8-9c88-331a-028f2026ab66/fullrender.png",
+      "swatch": "https://media.valorant-api.com/weaponskinchromas/ad2b0b8b-4da8-9c88-331a-028f2026ab66/swatch.png",
+      "streamedVideo": null,
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/Chromas/Orange/AssaultRifle_AK_HypeBeast_Orange_PrimaryAsset"
+    },
+    {
+      "uuid": "cd3ebdc1-4858-efda-6cee-c683726f8ca9",
+      "displayName": "Prime Vandal Level 4\r\n(Variant 2 Blue)",
+      "displayIcon": "https://media.valorant-api.com/weaponskinchromas/cd3ebdc1-4858-efda-6cee-c683726f8ca9/displayicon.png",
+      "fullRender": "https://media.valorant-api.com/weaponskinchromas/cd3ebdc1-4858-efda-6cee-c683726f8ca9/fullrender.png",
+      "swatch": "https://media.valorant-api.com/weaponskinchromas/cd3ebdc1-4858-efda-6cee-c683726f8ca9/swatch.png",
+      "streamedVideo": null,
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/Chromas/Blue/AssaultRifle_AK_HypeBeast_Blue_PrimaryAsset"
+    },
+    {
+      "uuid": "d43b8d21-4fb2-1224-1392-53ab6d829ed1",
+      "displayName": "Prime Vandal Level 4\r\n(Variant 3 Yellow)",
+      "displayIcon": "https://media.valorant-api.com/weaponskinchromas/d43b8d21-4fb2-1224-1392-53ab6d829ed1/displayicon.png",
+      "fullRender": "https://media.valorant-api.com/weaponskinchromas/d43b8d21-4fb2-1224-1392-53ab6d829ed1/fullrender.png",
+      "swatch": "https://media.valorant-api.com/weaponskinchromas/d43b8d21-4fb2-1224-1392-53ab6d829ed1/swatch.png",
+      "streamedVideo": null,
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/Chromas/Yellow/AssaultRifle_AK_HypeBeast_Yellow_PrimaryAsset"
+    }
+  ],
+  "levels": [
+    {
+      "uuid": "c9678d8c-4327-f397-b0ec-dca3c3d6fb15",
+      "displayName": "Prime Vandal",
+      "levelItem": null,
+      "displayIcon": "https://media.valorant-api.com/weaponskinlevels/c9678d8c-4327-f397-b0ec-dca3c3d6fb15/displayicon.png",
+      "streamedVideo": "https://valorant.dyn.riotcdn.net/x/videos/release-13.05/d9fe3b9b-6d9e-451f-84bd-b85d7f91a106_default_universal.mp4",
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/AssaultRifle_AK_HypeBeast_Lv1_PrimaryAsset"
+    },
+    {
+      "uuid": "c6f9c7ef-4a35-fa14-c9ed-bd80e37be826",
+      "displayName": "Prime Vandal Level 2",
+      "levelItem": "EEquippableSkinLevelItem::VFX",
+      "displayIcon": "https://media.valorant-api.com/weaponskinlevels/c6f9c7ef-4a35-fa14-c9ed-bd80e37be826/displayicon.png",
+      "streamedVideo": "https://valorant.dyn.riotcdn.net/x/videos/release-13.05/b3ac314b-100a-4822-8464-e0c861ca9171_default_universal.mp4",
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/AssaultRifle_AK_HypeBeast_Lv2_PrimaryAsset"
+    },
+    {
+      "uuid": "fc332008-475f-5555-0155-4cb3bce714ff",
+      "displayName": "Prime Vandal Level 3",
+      "levelItem": "EEquippableSkinLevelItem::Animation",
+      "displayIcon": "https://media.valorant-api.com/weaponskinlevels/fc332008-475f-5555-0155-4cb3bce714ff/displayicon.png",
+      "streamedVideo": "https://valorant.dyn.riotcdn.net/x/videos/release-13.05/3dce5c84-8554-4fba-aaa1-af725779014c_default_universal.mp4",
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/AssaultRifle_AK_HypeBeast_Lv3_PrimaryAsset"
+    },
+    {
+      "uuid": "22821a32-4e04-ad4a-1893-95904c08b264",
+      "displayName": "Prime Vandal Level 4",
+      "levelItem": "EEquippableSkinLevelItem::Finisher",
+      "displayIcon": "https://media.valorant-api.com/weaponskinlevels/22821a32-4e04-ad4a-1893-95904c08b264/displayicon.png",
+      "streamedVideo": "https://valorant.dyn.riotcdn.net/x/videos/release-13.05/97f7aa62-ede2-4e34-b5f8-efa798be6e86_default_universal.mp4",
+      "assetPath": "ShooterGame/Content/Equippables/Guns/Rifles/AK/HypeBeast/AssaultRifle_AK_HypeBeast_Lv4_PrimaryAsset"
+    }
+  ]
+}

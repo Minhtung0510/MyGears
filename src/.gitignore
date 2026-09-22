@@ -1,0 +1,26 @@
+# Generated files and local data; only application sources belong here.
+**/bin/
+**/obj/
+**/.vs/
+**/.webview2/
+**/RiotWebView2/
+**/accounts.enc
+**/settings.json
+!MyGears/RuntimeDefaults/settings.json
+**/*.log
+**/*.exe
+**/*.dll
+**/*.pdb
+**/*.user
+**/.env
+**/.env.*
+**/*.pfx
+**/*.key
+/App-backup-*/
+/Other/
+/prime-level2.png
+/prime-skin-metadata.json
+/ValorantUiCheck/*.png
+/SkinImageRegression/prefill-script.js
+/SkinImageRegression/update-fixtures/
+/artifacts/

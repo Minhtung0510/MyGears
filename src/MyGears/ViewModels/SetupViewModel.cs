@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MyGears.Core;
 using System.Collections.ObjectModel;
@@ -210,7 +210,7 @@ public partial class SetupViewModel : ObservableObject
         {
             IsInstalling = false;
             HasError = true;
-            ErrorMessage = "Đã xảy ra lỗi trong quá trình cài đặt. Vui lòng kiểm tra quyền ghi hoặc thử lại.";
+            ErrorMessage = ProgressStatusText;
         }
     }
 

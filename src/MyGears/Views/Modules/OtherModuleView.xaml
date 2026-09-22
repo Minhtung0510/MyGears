@@ -8,6 +8,10 @@
              Background="{StaticResource BgContent}"
              FontFamily="{StaticResource AppFont}">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="26,20">
         <StackPanel MaxWidth="820" HorizontalAlignment="Left">
 
@@ -188,7 +192,384 @@
                 </StackPanel>
             </Border>
 
-            <!-- ── Card 3: Thông Tin An Toàn ─────────────────────── -->
+            <!-- ── Card 3: Tải & Cài Đặt App Từ GitHub ────────── -->
+            <Border x:Name="CardAppManager" AllowDrop="True" DragOver="DropZone_DragOver" Drop="DropZone_Drop"
+                    CornerRadius="9" Background="{StaticResource PlateBevelGradient}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
+                    Padding="22,18" Margin="0,0,0,16">
+                <StackPanel>
+                    <!-- Header -->
+                    <Grid Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📥" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Tải &amp; Cài Đặt App Từ GitHub"
+                                       FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!-- Badge số lượng -->
+                            <Border x:Name="AppCountBadge" CornerRadius="5" Padding="8,3" Margin="0,0,10,0"
+                                    Background="#1A1E2E" BorderBrush="{StaticResource AccentBrass}" BorderThickness="1">
+                                <TextBlock x:Name="TxtAppCount" Text="0 app" FontSize="10.5" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentGold}" FontFamily="{StaticResource MonoFont}"/>
+                            </Border>
+                            <!-- Nút làm mới -->
+                            <Button x:Name="BtnRefreshApps" Content="🔄 Làm mới"
+                                    Click="BtnRefreshApps_Click"
+                                    Style="{StaticResource ToolbarButtonStyle}" Padding="12,7" FontSize="11.5"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Tự động quét danh sách file .exe, .msi, .zip từ GitHub Releases mới nhất. Bấm Tải &amp; Cài để tải về và tự động chạy installer."
+                               FontSize="11.5" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="17"/>
+
+                    <!-- Loading Indicator -->
+                    <Border x:Name="AppLoadingPanel" Visibility="Collapsed" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⚙" FontSize="16" Foreground="{StaticResource AccentGold}" Margin="0,0,8,0"
+                                       Style="{StaticResource SpinningStyle}"/>
+                            <TextBlock Text="Đang quét GitHub Releases…" FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Empty State -->
+                    <Border x:Name="AppEmptyPanel" Visibility="Collapsed" CornerRadius="7" Background="{StaticResource BgSurface}"
+                            BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1" Padding="20,16" Margin="0,0,0,12">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📭" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock Text="Không tìm thấy app nào trên GitHub Releases" FontSize="12.5" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Hãy upload file .exe / .msi / .zip vào Release trên GitHub, hoặc thêm link thủ công bên dưới."
+                                       FontSize="11" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"
+                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Danh sách App -->
+                    <ItemsControl x:Name="AppListControl" Margin="0,0,0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="7" Margin="0,0,0,8" Padding="14,11"
+                                        Background="{StaticResource BgSurface}"
+                                        BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrass}"/>
+                                                    <Setter Property="Background" Value="#222834"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Row 0: Thông tin app + nút -->
+                                        <Grid Grid.Row="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Icon -->
+                                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8"
+                                                    Background="#1A1E2E" Margin="0,0,12,0"
+                                                    BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1">
+                                                <TextBlock Text="{Binding Icon}" FontSize="18"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- Tên + Dung lượng + Loại file -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimary}" TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding FileName}" FontSize="10" Foreground="{StaticResource TextMuted}"
+                                                               FontFamily="{StaticResource MonoFont}" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="{Binding SizeDisplay}" FontSize="10" Foreground="{StaticResource AccentBrass}"
+                                                               FontFamily="{StaticResource MonoFont}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Badge trạng thái -->
+                                            <Border Grid.Column="2" CornerRadius="4" Padding="7,3" Margin="8,0"
+                                                    VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#1A1E2E"/>
+                                                        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="installed">
+                                                                <Setter Property="Background" Value="#10261C"/>
+                                                                <Setter Property="BorderBrush" Value="#00E676"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="downloaded">
+                                                                <Setter Property="Background" Value="#2A2012"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrass}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="downloading">
+                                                                <Setter Property="Background" Value="#261A10"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentAmber}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="installing">
+                                                                <Setter Property="Background" Value="#261A10"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentAmber}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="error">
+                                                                <Setter Property="Background" Value="#261214"/>
+                                                                <Setter Property="BorderBrush" Value="{StaticResource VintageRuby}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding StatusText}" FontSize="10" FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="installed">
+                                                                    <Setter Property="Foreground" Value="#00E676"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="downloaded">
+                                                                    <Setter Property="Foreground" Value="{StaticResource AccentGold}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="downloading">
+                                                                    <Setter Property="Foreground" Value="{StaticResource AccentAmber}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="installing">
+                                                                    <Setter Property="Foreground" Value="{StaticResource AccentAmber}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="error">
+                                                                    <Setter Property="Foreground" Value="{StaticResource VintageRuby}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+
+                                            <!-- Nút hành động -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <!-- Nút 1: Tải & Cài (Hiện khi chưa tải file & chưa cài vào máy) -->
+                                                <Button Tag="{Binding}" Click="DownloadAndInstallApp_Click" Cursor="Hand" Margin="0,0,4,0"
+                                                        Visibility="{Binding CanShowDownloadAndInstall, Converter={StaticResource BoolToVis}}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="BdDl" Background="{StaticResource AccentGradient}" CornerRadius="5"
+                                                                    Padding="10,5" BorderBrush="{StaticResource AccentGold}" BorderThickness="0.8">
+                                                                <TextBlock Text="📥 Tải &amp; Cài" FontSize="11" FontWeight="Bold" Foreground="#12100C"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="BdDl" Property="Opacity" Value="0.85"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <!-- Nút 2: Cài Ngay (Hiện khi đã có file tải về USB/PC nhưng chưa cài vào Windows) -->
+                                                <Button Tag="{Binding}" Click="InstallOfflineApp_Click" Cursor="Hand" Margin="0,0,4,0"
+                                                        Visibility="{Binding CanShowInstallOffline, Converter={StaticResource BoolToVis}}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="BdInst" Background="#1B2E1E" CornerRadius="5"
+                                                                    Padding="10,5" BorderBrush="{StaticResource VintageEmerald}" BorderThickness="0.8">
+                                                                <TextBlock Text="⚡ Cài Ngay" FontSize="11" FontWeight="Bold" Foreground="{StaticResource VintageEmerald}"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="BdInst" Property="Background" Value="#26422B"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <!-- Nút 3: Mở App (Hiện khi đã cài đặt vào máy) -->
+                                                <Button Tag="{Binding}" Click="LaunchApp_Click" Cursor="Hand" Margin="0,0,4,0"
+                                                        Visibility="{Binding CanShowLaunchApp, Converter={StaticResource BoolToVis}}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="BdLaunch" Background="#0E2A1C" CornerRadius="5"
+                                                                    Padding="10,5" BorderBrush="#00E676" BorderThickness="0.8">
+                                                                <TextBlock Text="🚀 Mở" FontSize="11" FontWeight="Bold" Foreground="#00E676"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="BdLaunch" Property="Background" Value="#17442E"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <!-- Nút 4: Cài lại (Hiện khi đã cài nhưng vẫn còn file bộ cài offline) -->
+                                                <Button Tag="{Binding}" Click="InstallOfflineApp_Click" Cursor="Hand" Margin="0,0,4,0"
+                                                        Visibility="{Binding CanShowReinstall, Converter={StaticResource BoolToVis}}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="BdReinst" Background="#1A202C" CornerRadius="5"
+                                                                    Padding="8,5" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="0.8">
+                                                                <TextBlock Text="🔄 Cài lại" FontSize="10" Foreground="{StaticResource TextSecondary}"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="BdReinst" Property="Background" Value="#242D3D"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+
+                                                <!-- Nút 5: Xóa file bộ cài (Hiện khi đã có file tải về máy/USB) -->
+                                                <Button Tag="{Binding}" Click="DeleteApp_Click" Cursor="Hand"
+                                                        Visibility="{Binding CanShowDeleteFile, Converter={StaticResource BoolToVis}}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="BdDel" Background="#261214" CornerRadius="5"
+                                                                    Padding="8,5" BorderBrush="{StaticResource VintageRuby}" BorderThickness="0.8">
+                                                                <TextBlock Text="🗑️ Xóa file" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource VintageRuby}"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="BdDel" Property="Background" Value="#3D181C"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Row 1: Progress bar (hiện khi đang tải hoặc đang cài đặt) -->
+                                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDownloading}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsInstalling}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <ProgressBar Grid.Column="0" Height="8"
+                                                         IsIndeterminate="{Binding IsInstalling}"
+                                                         Value="{Binding DownloadProgress}" Maximum="1.0"
+                                                         Background="#090C12" Foreground="{StaticResource AccentGold}"
+                                                         BorderBrush="#475569" BorderThickness="1"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding ProgressText}" FontSize="10"
+                                                       Foreground="{StaticResource AccentBrass}" FontFamily="{StaticResource MonoFont}"
+                                                       Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Khung Kéo Thả File Trực Tiếp -->
+                    <Border x:Name="DropZoneBorder" AllowDrop="True"
+                            DragEnter="DropZone_DragEnter" DragLeave="DropZone_DragLeave" DragOver="DropZone_DragOver" Drop="DropZone_Drop"
+                            CornerRadius="7" Background="#0C1018" BorderBrush="{StaticResource AccentBrass}" BorderThickness="1.5"
+                            Padding="16,11" Margin="0,2,0,8" Cursor="Hand">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="#161B26"
+                                    BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1" Margin="0,0,12,0"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="📂" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Kéo thả file .exe / .msi / .zip vào đây" FontSize="12" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentGold}"/>
+                                <TextBlock Text="File sẽ tự động được copy vào USB (d:\Download) và tự động đẩy lên GitHub Releases."
+                                           FontSize="10.5" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Cấu hình GitHub Token để tự động upload -->
+                    <Border CornerRadius="7" Background="{StaticResource BgSurface}" BorderBrush="{StaticResource BorderSubtle}"
+                            BorderThickness="1" Padding="14,10" Margin="0,8,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="🔑 GitHub Token (Để Tự Động Đẩy File Lên GitHub Releases)" FontSize="11.5"
+                                           FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTokenStatus" Text="⚠️ Chưa cấu hình Token" FontSize="10.5"
+                                           Foreground="{StaticResource AccentAmber}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox x:Name="PbGitHubToken" Grid.Column="0"
+                                             FontSize="12" Padding="10,7" Height="34"
+                                             Background="#0E1117" Foreground="{StaticResource TextPrimary}"
+                                             BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1"
+                                             VerticalContentAlignment="Center"/>
+                                <Button x:Name="BtnSaveToken" Grid.Column="1" Click="BtnSaveToken_Click"
+                                        Cursor="Hand" Margin="8,0,0,0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="BdSaveTok" Background="{StaticResource PlateBevelGradient}" CornerRadius="5"
+                                                    Padding="12,7" BorderBrush="{StaticResource AccentBrass}" BorderThickness="1">
+                                                <TextBlock Text="💾 Lưu Token" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="BdSaveTok" Property="BorderBrush" Value="{StaticResource AccentGold}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="BtnGetTokenGuide" Grid.Column="2" Click="BtnGetTokenGuide_Click"
+                                        Cursor="Hand" Margin="6,0,0,0">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="BdGuide" Background="#161E2E" CornerRadius="5"
+                                                    Padding="10,7" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1">
+                                                <TextBlock Text="❓ Tạo Token (30s)" FontSize="11" Foreground="{StaticResource AccentBrass}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="BdGuide" Property="BorderBrush" Value="{StaticResource AccentGold}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Dòng thông báo kết quả -->
+                    <TextBlock x:Name="TxtAppActionMsg" Text="" FontSize="11.5" Foreground="{StaticResource AccentGold}"
+                               Margin="0,8,0,0" Visibility="Collapsed" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Card 4: Thông Tin An Toàn ─────────────────────── -->
             <Border CornerRadius="9" Background="{StaticResource PlateBevelGradient}" BorderBrush="{StaticResource BorderCard}" BorderThickness="1"
                     Padding="22,18">
                 <StackPanel>

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 
 namespace MyGears.Core;
@@ -6,7 +6,7 @@ namespace MyGears.Core;
 /// <summary>
 /// Model thông tin một tài khoản game
 /// </summary>
-public class GameAccount
+public partial class GameAccount
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Game { get; set; } = "Valorant";
@@ -19,6 +19,28 @@ public class GameAccount
     /// Định dạng tk:mk (ví dụ: pro_player:MatKhau123)
     /// </summary>
     public string Combo => $"{Username}:{Password}";
+
+    /// <summary>
+    /// Dữ liệu soi Valorant được cache cho tài khoản này
+    /// </summary>
+    public ValorantScanResult? ValorantData { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasValorantData => ValorantData != null;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public System.Windows.Visibility ValorantBadgeVisibility => ValorantData != null ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ValorantSummaryText => ValorantData != null
+        ? $"{ValorantData.Profile.FullRankTitle}  •  {CardSkins} SKINS  •  {CardVp} VP"
+        : string.Empty;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ValorantInspectButtonText => ValorantData != null ? "🎯 Xem Kho Skin" : "🎯 Soi Valorant";
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string ValorantInspectButtonToolTip => ValorantData != null ? "Xem chi tiết kho đồ & cửa hàng đã lưu (bấm để xem ngay)" : "Soi kho đồ & cửa hàng Valorant tài khoản này";
 }
 
 /// <summary>
@@ -77,9 +99,13 @@ public static class AccountVaultService
     /// </summary>
     public static void SetupMasterPin(string pin)
     {
-        var (hash, salt) = SecurityService.HashPin(pin);
+        if (string.IsNullOrWhiteSpace(pin) || pin.Trim().Length < 4)
+            throw new ArgumentException("Mã PIN phải có ít nhất 4 ký tự.", nameof(pin));
+
+        var cleanPin = pin.Trim();
+        var (hash, salt) = SecurityService.HashPin(cleanPin);
         var emptyAccountsJson = JsonSerializer.Serialize(new List<GameAccount>());
-        var encrypted = SecurityService.Encrypt(emptyAccountsJson, pin);
+        var encrypted = SecurityService.Encrypt(emptyAccountsJson, cleanPin);
 
         var envelope = new VaultEnvelope
         {
@@ -148,9 +174,12 @@ public static class AccountVaultService
     /// </summary>
     public static bool ChangePin(string oldPin, string newPin)
     {
+        if (string.IsNullOrWhiteSpace(newPin) || newPin.Trim().Length < 4)
+            return false;
+
         if (!VerifyPin(oldPin)) return false;
         var accounts = LoadAccounts(oldPin);
-        SaveAccounts(accounts, newPin);
+        SaveAccounts(accounts, newPin.Trim());
         return true;
     }
 

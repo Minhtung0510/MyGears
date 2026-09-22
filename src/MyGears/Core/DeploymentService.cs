@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 
 namespace MyGears.Core;
@@ -25,7 +25,7 @@ public static class DeploymentService
                 Directory.CreateDirectory(targetRoot);
 
                 // Dọn dẹp/đóng các tiến trình đang mở từ thư mục đích để tránh lỗi file lock
-                KillProcessesInDirectory(targetRoot);
+                // Close only the core app when an update is needed.
 
                 var selected = components.Where(c => c.IsSelected).ToList();
 
@@ -56,25 +56,12 @@ public static class DeploymentService
                         var targetExe = Path.Combine(dest, "MyGears.exe");
                         var currentExe = Environment.ProcessPath;
 
-                        // Nếu USB có folder App/ chứa file và khác gốc USB -> Chép folder
-                        if (!string.IsNullOrEmpty(comp.SourcePath) && Directory.Exists(comp.SourcePath) &&
-                            !comp.SourcePath.TrimEnd('\\', '/').Equals(UsbPathResolver.UsbRoot.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
-                        {
-                            CopyDirectoryWithProgress(comp.SourcePath, dest, overwrite: true, totalBytes, ref copiedBytes, onProgress);
-                        }
-                        // Nếu đang chạy dưới dạng 1 file .exe duy nhất trên USB
-                        else if (!string.IsNullOrEmpty(currentExe) && File.Exists(currentExe))
-                        {
-                            try
-                            {
-                                File.Copy(currentExe, targetExe, overwrite: true);
-                            }
-                            catch (IOException) { }
-                        }
-                        else if (!string.IsNullOrEmpty(comp.CloudDownloadUrl))
-                        {
-                            CloudDownloadService.DownloadCloudAssetAsync(comp.CloudDownloadUrl, dest, onProgress).GetAwaiter().GetResult();
-                        }
+                        var sourceExe = Path.Combine(comp.SourcePath ?? "", "MyGears.exe");
+                        if (!File.Exists(sourceExe)) sourceExe = currentExe ?? "";
+                        if (!File.Exists(sourceExe)) throw new IOException("Không tìm thấy MyGears.exe nguồn.");
+                        if (!VerifiedAppUpdate.SameContent(sourceExe, targetExe)) CloseTargetApp(targetExe);
+                        VerifiedAppUpdate.Install(sourceExe, targetExe);
+                        onProgress?.Invoke("Đã xác minh bản MyGears bằng SHA-256.", 0.75);
 
                         // Đồng bộ các file cấu hình quan trọng sang C:\Users\Public\MyGears\App
                         var usbRoot = UsbPathResolver.UsbRoot;
@@ -86,10 +73,7 @@ public static class DeploymentService
                                 srcConfig = Path.Combine(usbRoot, "App", cf);
 
                             var destConfig = Path.Combine(dest, cf);
-                            if (File.Exists(srcConfig))
-                            {
-                                try { File.Copy(srcConfig, destConfig, overwrite: true); } catch { }
-                            }
+                            VerifiedAppUpdate.CopyInitialData(srcConfig, destConfig);
                         }
 
                         // Đảm bảo manifest.json luôn tồn tại tại thư mục đích
@@ -226,7 +210,7 @@ public static class DeploymentService
                 try
                 {
                     var destFi = new FileInfo(targetFilePath);
-                    if (destFi.Length == file.Length && destFi.LastWriteTimeUtc >= file.LastWriteTimeUtc.AddSeconds(-2))
+                    if (VerifiedAppUpdate.SameContent(file.FullName, targetFilePath))
                     {
                         totalCopiedBytes += file.Length;
                         continue;
@@ -243,7 +227,7 @@ public static class DeploymentService
             catch (IOException)
             {
                 // Nếu file đang bị khóa nhưng đã tồn tại trên máy tính, tiếp tục tiến trình
-                if (!File.Exists(targetFilePath)) throw;
+                throw;
             }
             totalCopiedBytes += file.Length;
             onProgress?.Invoke($"Đã chép {file.Name}…", Math.Min(0.98, (double)totalCopiedBytes / totalBytes));
@@ -260,79 +244,21 @@ public static class DeploymentService
         }
     }
 
-    private static void CopyDirectory(string sourceDir, string destinationDir, bool overwrite)
+    private static void CloseTargetApp(string targetExe)
     {
-        var dir = new DirectoryInfo(sourceDir);
-        if (!dir.Exists) return;
-
-        Directory.CreateDirectory(destinationDir);
-
-        foreach (var file in dir.GetFiles())
+        foreach (var process in Process.GetProcessesByName("MyGears"))
         {
-            var targetFilePath = Path.Combine(destinationDir, file.Name);
-
-            // Kiểm tra tồn tại: bỏ qua nếu đã có file trùng kích thước và thời gian
-            if (File.Exists(targetFilePath))
+            using (process)
             {
-                try
-                {
-                    var destFi = new FileInfo(targetFilePath);
-                    if (destFi.Length == file.Length && destFi.LastWriteTimeUtc >= file.LastWriteTimeUtc.AddSeconds(-2))
-                    {
-                        continue;
-                    }
-                }
-                catch { }
-            }
-
-            try
-            {
-                file.CopyTo(targetFilePath, overwrite);
-            }
-            catch (IOException)
-            {
-                if (!File.Exists(targetFilePath)) throw;
+                string? path;
+                try { path = process.MainModule?.FileName; } catch { continue; }
+                if (!string.Equals(path, targetExe, StringComparison.OrdinalIgnoreCase)) continue;
+                if (process.Id == Environment.ProcessId)
+                    throw new IOException("Hãy chạy bộ cài từ USB để cập nhật bản MyGears đang mở.");
+                if (!process.CloseMainWindow() || !process.WaitForExit(10000))
+                    throw new IOException("Hãy đóng MyGears trên máy rồi cập nhật lại. Bản cũ chưa bị thay đổi.");
             }
         }
-
-        foreach (var subDir in dir.GetDirectories())
-        {
-            // Bỏ qua thư mục cache .webview2 nếu có
-            if (subDir.Name.Equals(".webview2", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            var newDestSubDir = Path.Combine(destinationDir, subDir.Name);
-            CopyDirectory(subDir.FullName, newDestSubDir, overwrite);
-        }
-    }
-
-    private static void KillProcessesInDirectory(string targetRoot)
-    {
-        try
-        {
-            var targetRootLower = targetRoot.TrimEnd('\\', '/').ToLowerInvariant();
-            var currentPid = Process.GetCurrentProcess().Id;
-
-            foreach (var proc in Process.GetProcesses())
-            {
-                try
-                {
-                    if (proc.Id == currentPid) continue;
-
-                    string? mainModulePath = null;
-                    try { mainModulePath = proc.MainModule?.FileName; } catch { }
-
-                    if (!string.IsNullOrEmpty(mainModulePath) &&
-                        mainModulePath.ToLowerInvariant().StartsWith(targetRootLower))
-                    {
-                        proc.Kill();
-                        proc.WaitForExit(1000);
-                    }
-                }
-                catch { }
-            }
-        }
-        catch { }
     }
 
     private static void CreateDesktopShortcut(string targetExePath)

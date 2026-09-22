@@ -274,7 +274,7 @@ public partial class MouseModuleView : UserControl
         try
         {
             var parentWindow = Window.GetWindow(this);
-            if (parentWindow == null) return;
+            if (parentWindow == null || parentWindow.WindowState == WindowState.Minimized) return;
 
             // Tính toạ độ chính xác của ScyRoxContainer so với cửa sổ chính
             var point = ScyRoxContainer.TranslatePoint(new Point(0, 0), parentWindow);
@@ -426,32 +426,70 @@ public partial class MouseModuleView : UserControl
 
     private static string? FindScyRoxExe()
     {
+        // Danh sách các thư mục có thể chứa ScyRox driver
+        var candidateDirs = new List<string>();
+
+        // 1. Thư mục Download/ScyRox theo cấu hình USB / Runtime hiện tại
         var scyroxDir = UsbPathResolver.GetDownloadPath("ScyRox");
-        if (Directory.Exists(scyroxDir))
+        if (!string.IsNullOrEmpty(scyroxDir)) candidateDirs.Add(scyroxDir);
+
+        // 2. Thư mục đã deploy vào máy tính: C:\Users\Public\MyGears\Download\ScyRox
+        var localDeployDir = Path.Combine(UsbPathResolver.LocalDeployTargetDir, "Download", "ScyRox");
+        if (!candidateDirs.Contains(localDeployDir)) candidateDirs.Add(localDeployDir);
+
+        // 3. Nếu đang chạy trên máy tính mà có cắm USB thì quét thêm ổ USB
+        var usbRoot = UsbPathResolver.FindConnectedUsbRoot();
+        if (!string.IsNullOrEmpty(usbRoot))
         {
-            // 1. Tìm đúng tên ScyRox.exe trong USB
+            var usbScyRox = Path.Combine(usbRoot, "Download", "ScyRox");
+            if (!candidateDirs.Contains(usbScyRox)) candidateDirs.Add(usbScyRox);
+        }
+
+        // Quét trong các thư mục portable trên
+        foreach (var dir in candidateDirs)
+        {
+            if (!Directory.Exists(dir)) continue;
+
+            // Tìm đúng tên file chuẩn
             foreach (var name in ScyRoxExeNames)
             {
-                var path = Path.Combine(scyroxDir, name);
+                var path = Path.Combine(dir, name);
                 if (File.Exists(path)) return path;
             }
 
-            // 2. Tìm file .exe trong thư mục USB nhưng BỎ QUA setup/installer
-            var exes = Directory.GetFiles(scyroxDir, "*.exe", SearchOption.AllDirectories)
-                .Where(f => !f.Contains("setup", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains("install", StringComparison.OrdinalIgnoreCase) &&
-                            !f.Contains("unins", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            if (exes.Count > 0) return exes.First();
+            // Tìm file .exe bất kỳ nhưng bỏ qua bộ cài
+            try
+            {
+                var exes = Directory.GetFiles(dir, "*.exe", SearchOption.AllDirectories)
+                    .Where(f => !f.Contains("setup", StringComparison.OrdinalIgnoreCase) &&
+                                !f.Contains("install", StringComparison.OrdinalIgnoreCase) &&
+                                !f.Contains("unins", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (exes.Count > 0) return exes.First();
+            }
+            catch { }
         }
 
-        // 3. Fallback: Tìm trong Program Files nếu máy đã cài đặt
+        // 4. Fallback: Tìm trong Program Files 64-bit và 32-bit (Program Files (x86))
         var progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        var sys64Path = Path.Combine(progFiles, "ScyRox", "Sys64", "ScyRox.exe");
-        if (File.Exists(sys64Path)) return sys64Path;
+        var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-        var sys32Path = Path.Combine(progFiles, "ScyRox", "Sys32", "ScyRox.exe");
-        if (File.Exists(sys32Path)) return sys32Path;
+        string[] standardInstalledPaths =
+        [
+            Path.Combine(progFiles, "ScyRox", "Sys64", "ScyRox.exe"),
+            Path.Combine(progFiles, "ScyRox", "Sys32", "ScyRox.exe"),
+            Path.Combine(progFiles, "ScyRox", "ScyRox.exe"),
+            Path.Combine(progFilesX86, "ScyRox", "Sys64", "ScyRox.exe"),
+            Path.Combine(progFilesX86, "ScyRox", "Sys32", "ScyRox.exe"),
+            Path.Combine(progFilesX86, "ScyRox", "ScyRox.exe"),
+            Path.Combine(localApp, "Programs", "ScyRox", "ScyRox.exe")
+        ];
+
+        foreach (var p in standardInstalledPaths)
+        {
+            if (File.Exists(p)) return p;
+        }
 
         return null;
     }

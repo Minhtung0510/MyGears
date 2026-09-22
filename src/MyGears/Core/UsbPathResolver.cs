@@ -1,4 +1,5 @@
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace MyGears.Core;
 
@@ -39,17 +40,29 @@ public static class UsbPathResolver
     /// <summary>Đã khởi tạo thành công chưa</summary>
     public static bool IsInitialized { get; private set; }
 
-    /// <summary>Đang chạy trực tiếp từ USB (ổ di động hoặc ổ khác C:)</summary>
+    /// <summary>Đang chạy trực tiếp từ USB (ổ di động hoặc thiết bị USB cắm ngoài)</summary>
     public static bool IsRunningFromUsb
     {
         get
         {
             try
             {
+                // Nếu đang chạy trong thư mục đã deploy vào máy tính thì chắc chắn không phải USB
+                if (!string.IsNullOrEmpty(LocalDeployTargetDir) &&
+                    AppContext.BaseDirectory.StartsWith(LocalDeployTargetDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
                 var root = Path.GetPathRoot(AppContext.BaseDirectory);
                 if (string.IsNullOrEmpty(root)) return false;
+
                 var drive = new DriveInfo(root);
-                return drive.DriveType == DriveType.Removable || !AppContext.BaseDirectory.StartsWith(@"C:\", StringComparison.OrdinalIgnoreCase);
+                if (drive.DriveType == DriveType.Removable)
+                    return true;
+
+                // Kiểm tra thêm trường hợp USB Box / External SSD được Windows nhận dạng là Fixed
+                return IsUsbBusDevice(root);
             }
             catch
             {
@@ -186,5 +199,95 @@ public static class UsbPathResolver
     {
         if (!IsInitialized)
             throw new InvalidOperationException("UsbPathResolver chưa được khởi tạo. Hãy gọi Initialize() trước.");
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern IntPtr CreateFile(
+        string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool DeviceIoControl(
+        IntPtr hDevice,
+        uint dwIoControlCode,
+        IntPtr lpInBuffer,
+        uint nInBufferSize,
+        IntPtr lpOutBuffer,
+        uint nOutBufferSize,
+        out uint lpBytesReturned,
+        IntPtr lpOverlapped);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr hObject);
+
+    private const uint IOCTL_STORAGE_QUERY_PROPERTY = 0x002D1400;
+    private const uint FILE_SHARE_READ = 1;
+    private const uint FILE_SHARE_WRITE = 2;
+    private const uint OPEN_EXISTING = 3;
+
+    private static bool IsUsbBusDevice(string driveRoot)
+    {
+        try
+        {
+            var cleanLetter = driveRoot.TrimEnd('\\', '/');
+            var handle = CreateFile(
+                $@"\\.\{cleanLetter}",
+                0, // 0 = Query access, không cần quyền Administrator
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                IntPtr.Zero,
+                OPEN_EXISTING,
+                0,
+                IntPtr.Zero);
+
+            if (handle == IntPtr.Zero || handle == new IntPtr(-1)) return false;
+
+            try
+            {
+                int querySize = 12;
+                IntPtr pQuery = Marshal.AllocHGlobal(querySize);
+                Marshal.WriteInt32(pQuery, 0, 0); // PropertyId = StorageDeviceProperty (0)
+                Marshal.WriteInt32(pQuery, 4, 0); // QueryType = PropertyStandardQuery (0)
+                Marshal.WriteInt32(pQuery, 8, 0); // AdditionalParameters
+
+                int outBufferSize = 1024;
+                IntPtr pOutBuffer = Marshal.AllocHGlobal(outBufferSize);
+
+                bool success = DeviceIoControl(
+                    handle,
+                    IOCTL_STORAGE_QUERY_PROPERTY,
+                    pQuery,
+                    (uint)querySize,
+                    pOutBuffer,
+                    (uint)outBufferSize,
+                    out uint bytesReturned,
+                    IntPtr.Zero);
+
+                Marshal.FreeHGlobal(pQuery);
+
+                if (success && bytesReturned >= 32)
+                {
+                    // Trong STORAGE_DEVICE_DESCRIPTOR:
+                    // Offset 28 là STORAGE_BUS_TYPE BusType.
+                    // BusTypeUsb = 7
+                    int busType = Marshal.ReadInt32(pOutBuffer, 28);
+                    Marshal.FreeHGlobal(pOutBuffer);
+                    return busType == 7;
+                }
+
+                Marshal.FreeHGlobal(pOutBuffer);
+            }
+            finally
+            {
+                CloseHandle(handle);
+            }
+        }
+        catch { }
+
+        return false;
     }
 }

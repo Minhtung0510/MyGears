@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using MyGears.Core;
 using MyGears.Views;
 
@@ -63,6 +63,9 @@ public partial class App : Application
                     {
                         if (p.Id != currentProc.Id && p.MainWindowHandle != IntPtr.Zero)
                         {
+                            var runningPath = p.MainModule?.FileName;
+                            if (!string.Equals(runningPath, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase))
+                                MessageBox.Show($"MyGears đang mở từ:\n{runningPath}\n\nBạn vừa mở:\n{Environment.ProcessPath}\n\nHãy đóng bản đang chạy trước khi mở bản này. Để cập nhật bản cài trên máy, chạy MyGears.exe --setup từ thư mục App nguồn.", "MyGears — Đang mở bản khác", MessageBoxButton.OK, MessageBoxImage.Information);
                             ShowWindowAsync(p.MainWindowHandle, SW_RESTORE);
                             SetForegroundWindow(p.MainWindowHandle);
                             break;
